@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup go
         uses: actions/setup-go@v2
+        with:
+          stable: true
       - name: Download go modules
         run: go mod download
       - name: Go build
