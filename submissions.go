@@ -66,21 +66,21 @@ type submissionsResponse []struct {
 		} `json:"closeReason"`
 	} `json:"state"`
 	TotalPayout      float64     `json:"totalPayout"`
-	CreatedAt        int         `json:"createdAt"`
-	LastUpdatedAt    int         `json:"lastUpdatedAt"`
-	ValidatedAt      int         `json:"validatedAt"`
-	AcceptedAt       int         `json:"acceptedAt"`
-	ClosedAt         int         `json:"closedAt"`
-	ArchivedAt       interface{} `json:"archivedAt"`
+	CreatedAt        uint64         `json:"createdAt"`
+	LastUpdatedAt    uint64         `json:"lastUpdatedAt"`
+	ValidatedAt      uint64         `json:"validatedAt"`
+	AcceptedAt       uint64         `json:"acceptedAt"`
+	ClosedAt         uint64         `json:"closedAt"`
+	ArchivedAt       uint64         `json:"archivedAt"`
 	AwaitingFeedback bool        `json:"awaitingFeedback"`
 	Assignee         struct {
 		UserName  string      `json:"userName"`
-		AvatarURL interface{} `json:"avatarUrl"`
+		AvatarURL string      `json:"avatarUrl"`
 		Email     string      `json:"email"`
 	} `json:"assignee"`
 	Researcher struct {
 		UserName  string      `json:"userName"`
-		AvatarURL interface{} `json:"avatarUrl"`
+		AvatarURL string      `json:"avatarUrl"`
 		Ranking   struct {
 			Rank       int `json:"rank"`
 			Reputation int `json:"reputation"`
@@ -98,17 +98,32 @@ type submissionsResponse []struct {
 	} `json:"lastUpdater"`
 }
 
+type Researcher struct {
+	Username 	string
+	AvatarURL 	string
+}
+
+type Program struct {
+	Handle string
+	Name   string
+}
+
 type Submission struct {
+	Program     Program
+	Researcher  Researcher
+
+	DateCreated uint64
+	DateClosed  uint64
+
 	Type 		string
-	Program		string
 	ID			string
 	URL			string
 	Title		string
-	Researcher	string
 	Severity	string
 	Timestamp	time.Time
 	Endpoint	string
 	State 		string
+	Payout      float64
 }
 
 func (f *Submission) IsReady() bool {
@@ -152,7 +167,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 		return findings, errors.Wrap(err, "fetching to intigriti failed")
 	}
 
-	defer resp.Body.Close()
+	defer func(){ _ = resp.Body.Close() }()
 	if resp.StatusCode > 399 {
 		return findings, errors.Errorf("fetch from intigriti returned status code: %d", resp.StatusCode)
 	}
@@ -169,16 +184,25 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 
 	for _, entry := range fetchResp {
 		findings = append(findings, Submission{
+			Program: Program{
+				Handle: entry.Program.Handle,
+				Name:   entry.Program.Name,
+			},
+
+			Researcher: Researcher{
+				Username:  entry.Researcher.UserName,
+				AvatarURL: entry.Researcher.AvatarURL,
+			},
+
 			State: 		entry.State.Status.Value,
 			Type:		entry.Type.Name,
-			Program:    entry.Program.Name,
 			ID:			entry.Code,
 			// TODO wait for them to implement FE view url
 			URL:		"https://intigriti.com/",
 			Title:      entry.Title,
-			Researcher: entry.Researcher.UserName,
 			Severity:   entry.Severity.Value,
-			Timestamp: 	time.Unix(int64(entry.CreatedAt), 0),
+			DateCreated:entry.CreatedAt,
+			DateClosed: entry.ClosedAt,
 			Endpoint:   entry.EndpointVulnerableComponent,
 		})
 	}
