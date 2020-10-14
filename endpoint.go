@@ -14,6 +14,8 @@ const (
 
 type Endpoint struct {
 	Logger 			*logrus.Logger
+	URLApiAuth        string
+	URLApiSubmissions string
 
 	clientToken		string
 	clientSecret 	string
@@ -21,9 +23,6 @@ type Endpoint struct {
 
 	authToken		string
 	authTokenExp    time.Time
-
-	apiAuth 		string
-	apiSubmissions 	string
 }
 
 func New(clientToken string, clientSecret string) Endpoint {
@@ -34,8 +33,8 @@ func New(clientToken string, clientSecret string) Endpoint {
 	}
 
 	e.Logger = logrus.New()
-	e.apiAuth = apiAuth
-	e.apiSubmissions = apiSubmissions
+	e.URLApiAuth = apiAuth
+	e.URLApiSubmissions = apiSubmissions
 
 	return e
 }
