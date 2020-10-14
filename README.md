@@ -1,5 +1,6 @@
 # go-intigriti
-Go library to interact with the intigriti API.
+Go library for interacting with the [intigriti](https://www.intigriti.com/) API.
+Checkout the [docs](https://pkg.go.dev/github.com/hazcod/go-intigriti)!
 
 ## Usage
 ```go
@@ -19,4 +20,13 @@ func main() {
 		log.Println(submission.Title)
 	}
 }
+```
+
+## Testing
+```shell script
+# test on production
+TOKEN="foo" SECRET="bar" go test -tags integration -v ./...
+
+# test on staging
+TOKEN="foo" SECRET="bar" AUTH_API="testing.api.com" SUB_API="subs.testing.api.com" go test -tags integration -v ./...
 ```

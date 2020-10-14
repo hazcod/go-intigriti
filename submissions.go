@@ -3,7 +3,6 @@ package intigriti
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -11,7 +10,6 @@ import (
 )
 
 type submissionsResponse []struct {
-	SubmissionDetailUrl string `json:"submissionDetailUrl"`
 	Code              string `json:"code"`
 	InternalReference struct {
 		Reference string `json:"reference"`
@@ -20,9 +18,9 @@ type submissionsResponse []struct {
 	Title         string `json:"title"`
 	OriginalTitle string `json:"originalTitle"`
 	Program       struct {
-		Name                 string      `json:"name"`
-		Handle               string      `json:"handle"`
-		LogoURL              interface{} `json:"logoUrl"`
+		Name                 string `json:"name"`
+		Handle               string `json:"handle"`
+		LogoURL              string `json:"logoUrl"`
 		ConfidentialityLevel struct {
 			ID    int    `json:"id"`
 			Value string `json:"value"`
@@ -31,28 +29,32 @@ type submissionsResponse []struct {
 			ID    int    `json:"id"`
 			Value string `json:"value"`
 		} `json:"status"`
+		StatusTrigger struct {
+			ID    int    `json:"id"`
+			Value string `json:"value"`
+		} `json:"statusTrigger"`
 	} `json:"program"`
 	Type struct {
-		Name     string      `json:"name"`
-		Category interface{} `json:"category"`
-		Cwe      interface{} `json:"cwe"`
+		Name     string `json:"name"`
+		Category string `json:"category"`
+		Cwe      string `json:"cwe"`
 	} `json:"type"`
 	Severity struct {
-		ID     int         `json:"id"`
-		Vector interface{} `json:"vector"`
-		Value  string      `json:"value"`
+		ID     int    `json:"id"`
+		Vector string `json:"vector"`
+		Value  string `json:"value"`
 	} `json:"severity"`
 	Domain struct {
-		Type struct {
+		Value      string `json:"value"`
+		Motivation string `json:"motivation"`
+		Type       struct {
 			ID    int    `json:"id"`
 			Value string `json:"value"`
 		} `json:"type"`
-		Value          string `json:"value"`
-		Motivation     string `json:"motivation"`
-		BusinessImpact struct {
+		BountyTable struct {
 			ID    int    `json:"id"`
 			Value string `json:"value"`
-		} `json:"businessImpact"`
+		} `json:"bountyTable"`
 	} `json:"domain"`
 	EndpointVulnerableComponent string `json:"endpointVulnerableComponent"`
 	State                       struct {
@@ -65,22 +67,23 @@ type submissionsResponse []struct {
 			Value string `json:"value"`
 		} `json:"closeReason"`
 	} `json:"state"`
-	TotalPayout      float64     `json:"totalPayout"`
-	CreatedAt        uint64         `json:"createdAt"`
-	LastUpdatedAt    uint64         `json:"lastUpdatedAt"`
-	ValidatedAt      uint64         `json:"validatedAt"`
-	AcceptedAt       uint64         `json:"acceptedAt"`
-	ClosedAt         uint64         `json:"closedAt"`
-	ArchivedAt       uint64         `json:"archivedAt"`
-	AwaitingFeedback bool        `json:"awaitingFeedback"`
+	TotalPayout      float64 `json:"totalPayout"`
+	CreatedAt        int64   `json:"createdAt"`
+	LastUpdatedAt    int64   `json:"lastUpdatedAt"`
+	ClosedAt         int64   `json:"closedAt"`
+	ValidatedAt      int64   `json:"validatedAt"`
+	AcceptedAt       int64   `json:"acceptedAt"`
+	ArchivedAt       int64   `json:"archivedAt"`
+	AwaitingFeedback bool    `json:"awaitingFeedback"`
 	Assignee         struct {
-		UserName  string      `json:"userName"`
-		AvatarURL string      `json:"avatarUrl"`
-		Email     string      `json:"email"`
+		UserName  string `json:"userName"`
+		AvatarURL string `json:"avatarUrl"`
+		Email     string `json:"email"`
+		Role      string `json:"role"`
 	} `json:"assignee"`
 	Researcher struct {
-		UserName  string      `json:"userName"`
-		AvatarURL string      `json:"avatarUrl"`
+		UserName  string `json:"userName"`
+		AvatarURL string `json:"avatarUrl"`
 		Ranking   struct {
 			Rank       int `json:"rank"`
 			Reputation int `json:"reputation"`
@@ -92,15 +95,23 @@ type submissionsResponse []struct {
 		IdentityChecked bool `json:"identityChecked"`
 	} `json:"researcher"`
 	LastUpdater struct {
-		UserName  string      `json:"userName"`
-		AvatarURL interface{} `json:"avatarUrl"`
-		Email     string      `json:"email"`
+		UserName  string `json:"userName"`
+		AvatarURL string `json:"avatarUrl"`
+		Email     string `json:"email"`
+		Role      string `json:"role"`
 	} `json:"lastUpdater"`
+	Links struct {
+		Details string `json:"details"`
+	} `json:"links"`
+	WebLinks struct {
+		Details string `json:"details"`
+	} `json:"webLinks"`
+	SubmissionDetailURL string `json:"submissionDetailUrl"`
 }
 
 type Researcher struct {
-	Username 	string
-	AvatarURL 	string
+	Username  string
+	AvatarURL string
 }
 
 type Program struct {
@@ -109,25 +120,32 @@ type Program struct {
 }
 
 type Submission struct {
-	Program     Program
-	Researcher  Researcher
+	Program    Program
+	Researcher Researcher
 
-	DateCreated uint64
-	DateClosed  uint64
+	DateLastUpdated time.Time
+	DateCreated     time.Time
+	DateClosed      time.Time
 
-	Type 		string
-	ID			string
-	URL			string
-	Title		string
-	Severity	string
-	Timestamp	time.Time
-	Endpoint	string
-	State 		string
-	Payout      float64
+	CWE      string
+	Type     string
+	Category string
+
+	InternalReference string
+
+	ID       string
+	URL      string
+	Title    string
+	Severity string
+	Endpoint string
+	State    string
+	Payout   float64
+
+	CloseReason string
 }
 
-func (f *Submission) IsReady() bool {
-	switch strings.ToLower(f.State) {
+func (s *Submission) IsReady() bool {
+	switch strings.ToLower(s.State) {
 	case "triage":
 		return false
 	case "closed":
@@ -141,6 +159,10 @@ func (f *Submission) IsReady() bool {
 	}
 }
 
+func (s *Submission) IsClosed() bool {
+	return s.CloseReason != ""
+}
+
 func getBearerTokenHeader(authToken string) string {
 	return "Bearer " + authToken
 }
@@ -149,10 +171,10 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 	var findings []Submission
 
 	if err := authenticate(e); err != nil {
-		return  findings, errors.Wrap(err, "could not authenticate to intigriti API")
+		return findings, errors.Wrap(err, "could not authenticate to intigriti API")
 	}
 
-	req, err := http.NewRequest(http.MethodGet, apiSubmissions, nil)
+	req, err := http.NewRequest(http.MethodGet, e.apiSubmissions, nil)
 	if err != nil {
 		return findings, errors.Wrap(err, "could not create http request to intigriti")
 	}
@@ -167,7 +189,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 		return findings, errors.Wrap(err, "fetching to intigriti failed")
 	}
 
-	defer func(){ _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode > 399 {
 		return findings, errors.Errorf("fetch from intigriti returned status code: %d", resp.StatusCode)
 	}
@@ -179,7 +201,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 	}
 
 	if err := json.Unmarshal(respBytes, &fetchResp); err != nil {
-		return findings, errors.Wrap(err, "could not decode intigriti fetch response")
+		return findings, errors.Wrap(err, "could not decode intigriti response")
 	}
 
 	for _, entry := range fetchResp {
@@ -194,19 +216,26 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 				AvatarURL: entry.Researcher.AvatarURL,
 			},
 
-			State: 		entry.State.Status.Value,
-			Type:		entry.Type.Name,
-			ID:			entry.Code,
-			// TODO wait for them to implement FE view url
-			URL:		"https://intigriti.com/",
-			Title:      entry.Title,
-			Severity:   entry.Severity.Value,
-			DateCreated:entry.CreatedAt,
-			DateClosed: entry.ClosedAt,
-			Endpoint:   entry.EndpointVulnerableComponent,
+			State:    entry.State.Status.Value,
+			Type:     entry.Type.Name,
+			CWE:      entry.Type.Cwe,
+			Category: entry.Type.Category,
+			ID:       entry.Code,
+
+			URL:      entry.SubmissionDetailURL,
+			Title:    entry.Title,
+			Severity: entry.Severity.Value,
+
+			DateCreated:     time.Unix(entry.CreatedAt, 0),
+			DateClosed:      time.Unix(entry.ClosedAt, 0),
+			DateLastUpdated: time.Unix(entry.LastUpdatedAt, 0),
+
+			Endpoint: entry.EndpointVulnerableComponent,
+
+			InternalReference: entry.InternalReference.Reference,
+			CloseReason: entry.State.CloseReason.Value,
 		})
 	}
 
-	logrus.WithField("findings_size", len(fetchResp)).Info("found findings on intigriti")
 	return findings, nil
 }

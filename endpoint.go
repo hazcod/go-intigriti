@@ -1,6 +1,7 @@
 package intigriti
 
 import (
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -12,18 +13,29 @@ const (
 )
 
 type Endpoint struct {
+	Logger 			*logrus.Logger
+
 	clientToken		string
 	clientSecret 	string
 	clientTag 		string
 
 	authToken		string
 	authTokenExp    time.Time
+
+	apiAuth 		string
+	apiSubmissions 	string
 }
 
 func New(clientToken string, clientSecret string) Endpoint {
-	return Endpoint{
+	e := Endpoint{
 		clientToken: clientToken,
 		clientSecret: clientSecret,
 		clientTag: clientTag,
 	}
+
+	e.Logger = logrus.New()
+	e.apiAuth = apiAuth
+	e.apiSubmissions = apiSubmissions
+
+	return e
 }

@@ -3,7 +3,6 @@ package intigriti
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -50,7 +49,8 @@ func getNewAuthToken(apiUrl, clientId, clientSecret string) (authResponse authRe
 		return authResponse, errors.Wrap(err, "http request failed")
 	}
 
-	defer resp.Body.Close()
+	defer func(){ _ = resp.Body.Close() }()
+
 	if resp.StatusCode > 399 {
 		return authResponse, errors.Errorf("received error code: %d", resp.StatusCode)
 	}
@@ -61,7 +61,6 @@ func getNewAuthToken(apiUrl, clientId, clientSecret string) (authResponse authRe
 	}
 
 	if err := json.Unmarshal(respBytes, &authResponse); err != nil {
-		logrus.Debugf("%+v", string(respBytes))
 		return authResponse, errors.Wrap(err, "could not decode auth response")
 	}
 
@@ -78,7 +77,7 @@ func setNewAuthExpiration(e *Endpoint, tokenSeconds int) error {
 
 	e.authTokenExp = newExpTime
 
-	logrus.WithField("token_exp", newExpTime).Debug("new token expiration set")
+	e.Logger.WithField("token_exp", newExpTime).Debug("new token expiration set")
 
 	return nil
 }
@@ -87,12 +86,12 @@ func authenticate(e *Endpoint) error {
 	now := time.Now()
 
 	if ! needsAuthRefresh(e.authTokenExp, now) {
-		logrus.WithField("auth_token_exp", e.authTokenExp).
-			Debug("no need to refresh intigriti auth token")
+		e.Logger.WithField("auth_token_exp", e.authTokenExp).
+			Debug("no need to refresh auth token")
 		return nil
 	}
 
-	authResponse, err := getNewAuthToken(apiAuth, e.clientToken, e.clientSecret)
+	authResponse, err := getNewAuthToken(e.apiAuth, e.clientToken, e.clientSecret)
 	if err != nil {
 		return errors.Wrap(err, "could not retrieve new intigriti auth token")
 	}
@@ -104,14 +103,14 @@ func authenticate(e *Endpoint) error {
 	e.authToken = authResponse.AccessToken
 
 	if strings.ToLower(authResponse.TokenType) != expectedTokenType {
-		logrus.WithField("token_type", authResponse.TokenType).Warn("unexpected token type")
+		e.Logger.WithField("token_type", authResponse.TokenType).Warn("unexpected token type")
 	}
 
 	if strings.ToLower(authResponse.Scope) != expectedTokenScope {
-		logrus.WithField("token_scope", authResponse.Scope).Warn("unexpected token scope")
+		e.Logger.WithField("token_scope", authResponse.Scope).Warn("unexpected token scope")
 	}
 
-	logrus.Debug("authenticated to intigriti")
+	e.Logger.Debug("authenticated to intigriti")
 
 	return nil
 }

@@ -25,7 +25,7 @@ func TestNeedsAuthRefresh(t *testing.T) {
 }
 
 func TestSetNewAuthExpiration(t *testing.T) {
-	e := Endpoint{}
+	e := New("", "")
 	okToken  := time.Hour * 4
 
 	if err := setNewAuthExpiration(&e, int(okToken.Seconds())); err != nil {
