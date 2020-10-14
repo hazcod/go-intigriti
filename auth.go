@@ -50,6 +50,7 @@ func getNewAuthToken(apiUrl, clientId, clientSecret string) (authResponse authRe
 	}
 
 	defer func(){ _ = resp.Body.Close() }()
+
 	if resp.StatusCode > 399 {
 		return authResponse, errors.Errorf("received error code: %d", resp.StatusCode)
 	}
@@ -86,11 +87,11 @@ func authenticate(e *Endpoint) error {
 
 	if ! needsAuthRefresh(e.authTokenExp, now) {
 		e.Logger.WithField("auth_token_exp", e.authTokenExp).
-			Debug("no need to refresh intigriti auth token")
+			Debug("no need to refresh auth token")
 		return nil
 	}
 
-	authResponse, err := getNewAuthToken(apiAuth, e.clientToken, e.clientSecret)
+	authResponse, err := getNewAuthToken(e.apiAuth, e.clientToken, e.clientSecret)
 	if err != nil {
 		return errors.Wrap(err, "could not retrieve new intigriti auth token")
 	}
