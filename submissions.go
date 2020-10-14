@@ -222,7 +222,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 			Category: entry.Type.Category,
 			ID:       entry.Code,
 
-			URL:      entry.Weblinks.Details,
+			URL:      entry.WebLinks.Details,
 			Title:    entry.Title,
 			Severity: entry.Severity.Value,
 
