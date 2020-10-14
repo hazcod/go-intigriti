@@ -3,7 +3,6 @@ package intigriti
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -179,7 +178,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 	}
 
 	if err := json.Unmarshal(respBytes, &fetchResp); err != nil {
-		return findings, errors.Wrap(err, "could not decode intigriti fetch response")
+		return findings, errors.Wrap(err, "could not decode intigriti response")
 	}
 
 	for _, entry := range fetchResp {
@@ -207,6 +206,5 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 		})
 	}
 
-	logrus.WithField("findings_size", len(fetchResp)).Info("found findings on intigriti")
 	return findings, nil
 }
