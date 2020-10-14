@@ -91,7 +91,7 @@ func authenticate(e *Endpoint) error {
 		return nil
 	}
 
-	authResponse, err := getNewAuthToken(e.apiAuth, e.clientToken, e.clientSecret)
+	authResponse, err := getNewAuthToken(e.URLApiAuth, e.clientToken, e.clientSecret)
 	if err != nil {
 		return errors.Wrap(err, "could not retrieve new intigriti auth token")
 	}

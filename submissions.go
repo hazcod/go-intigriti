@@ -174,7 +174,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 		return findings, errors.Wrap(err, "could not authenticate to intigriti API")
 	}
 
-	req, err := http.NewRequest(http.MethodGet, e.apiSubmissions, nil)
+	req, err := http.NewRequest(http.MethodGet, e.URLApiSubmissions, nil)
 	if err != nil {
 		return findings, errors.Wrap(err, "could not create http request to intigriti")
 	}

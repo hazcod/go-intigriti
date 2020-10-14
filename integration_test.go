@@ -21,8 +21,8 @@ func TestIntegration(t *testing.T) {
 	inti := New(token, secret)
 	inti.Logger = logrus.New()
 	inti.Logger.SetLevel(logrus.DebugLevel)
-	inti.apiAuth = apiAuth
-	inti.apiSubmissions = apiSub
+	inti.URLApiAuth = apiAuth
+	inti.URLApiSubmissions = apiSub
 
 	subs, err := inti.GetSubmissions()
 	if err != nil {
