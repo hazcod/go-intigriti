@@ -1,0 +1,13 @@
+on: pull_request_target
+
+jobs:
+
+  approve:
+    name: Dependabot PR Auto-approve
+    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+    runs-on: ubuntu-latest
+    steps:
+    -
+      uses: hmarr/auto-approve-action@v2.1.0
+      with:
+        github-token: "${{ secrets.GITHUB_TOKEN }}"

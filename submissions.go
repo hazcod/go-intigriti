@@ -190,6 +190,17 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 	}
 
 	defer func() { _ = resp.Body.Close() }()
+
+	// the token was invalidated before it expired
+	if resp.StatusCode == http.StatusUnauthorized {
+		// fetch a new token
+		if err := authenticate(e); err != nil {
+			return nil, errors.Wrap(err, "could not reauthenticate to intigriti API")
+		}
+
+		e.Logger.Debug("reauthenticated because of an invalidated token")
+	}
+
 	if resp.StatusCode > 399 {
 		return findings, errors.Errorf("fetch from intigriti returned status code: %d", resp.StatusCode)
 	}
@@ -222,7 +233,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 			Category: entry.Type.Category,
 			ID:       entry.Code,
 
-			URL:      entry.SubmissionDetailURL,
+			URL:      entry.WebLinks.Details,
 			Title:    entry.Title,
 			Severity: entry.Severity.Value,
 
@@ -233,7 +244,7 @@ func (e *Endpoint) GetSubmissions() ([]Submission, error) {
 			Endpoint: entry.EndpointVulnerableComponent,
 
 			InternalReference: entry.InternalReference.Reference,
-			CloseReason: entry.State.CloseReason.Value,
+			CloseReason:       entry.State.CloseReason.Value,
 		})
 	}
 
