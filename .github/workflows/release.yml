@@ -26,7 +26,7 @@ jobs:
         if: steps.semantic.outputs.version != ''
       -
         name: Release
-        uses: goreleaser/goreleaser-action@v2.6.0
+        uses: goreleaser/goreleaser-action@v2.6.1
         if: steps.semantic.outputs.version != ''
         with:
           version: latest
