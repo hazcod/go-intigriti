@@ -15,7 +15,7 @@ jobs:
         name: Unshallow
         run: git fetch --prune --unshallow
       -
-        uses: go-semantic-release/action@v1.14
+        uses: go-semantic-release/action@v1.15
         id: semantic
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
