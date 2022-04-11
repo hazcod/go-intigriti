@@ -22,7 +22,7 @@ jobs:
           changelog-file: .changelog
       -
         name: Set up Go
-        uses: actions/setup-go@v2.1.3
+        uses: actions/setup-go@v3
         if: steps.semantic.outputs.version != ''
       -
         name: Release
