@@ -55,7 +55,7 @@ func main() {
 	command := strings.ToLower(flag.Args()[0])
 
 	switch strings.ToLower(command) {
-	case "company", "c":
+	case "company", "c", "com":
 		company.Command(logger, cfg, inti)
 		return
 	default:
