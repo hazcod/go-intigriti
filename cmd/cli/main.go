@@ -46,6 +46,7 @@ func main() {
 			logger.WithError(err).Warn("could not cache token")
 		}
 	}
+	logger.WithField("valid", intiToken.Valid()).Debug("retrieved auth token")
 
 	if len(flag.Args()) == 0 {
 		logger.Fatalf("no command provided. See: company")

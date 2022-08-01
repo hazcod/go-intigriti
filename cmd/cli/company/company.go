@@ -13,11 +13,15 @@ func Command(l *logrus.Logger, cfg *config.Config, inti v2.Endpoint) {
 		l.Fatal("Missing subcommand. See: company <list,submissions>")
 	}
 
-	subCommand := strings.ToLower(flag.Args()[1])
+	subCommand := strings.ToLower(flag.Arg(1))
 
 	switch subCommand {
 	case "ls", "list", "list-programs":
 		ListPrograms(l, inti)
+		return
+
+	case "sub", "submissions", "list-submissions":
+		ListSubmissions(l, inti)
 		return
 
 	default:
