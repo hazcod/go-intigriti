@@ -32,10 +32,6 @@ func New(clientToken string, clientSecret string) Endpoint {
 		clientTag:    clientTag,
 	}
 
-	e.clientToken = ""
-
-	// TODO: implement new OIDC authentication mechanism
-
 	e.Logger = logrus.New()
 	e.URLApiAuth = apiAuth
 	e.URLApiSubmissions = apiSubmissions
