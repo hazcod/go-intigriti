@@ -15,12 +15,6 @@ jobs:
       name: Unshallow
       run: git fetch --prune --unshallow
     -
-      uses: go-semantic-release/action@v1
-      id: semantic
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        changelog-file: .changelog
-    -
       name: Set up Go
       uses: actions/setup-go@v3
     -
