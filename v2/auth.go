@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -20,13 +21,33 @@ const (
 	apiEndpoint = "https://api.intigriti.com/external"
 )
 
+var (
+	tokenURL = os.Getenv("INTI_TOKEN_URL")
+	authzURL = os.Getenv("INTI_AUTH_URL")
+	apiURL   = os.Getenv("INTI_API_URL")
+)
+
 func (e *Endpoint) getOauth2Config() oauth2.Config {
+	if tokenURL == "" {
+		tokenURL = apiTokenURL
+	}
+
+	if authzURL == "" {
+		authzURL = apiAuthzURL
+	}
+
+	if apiURL == "" {
+		apiURL = apiEndpoint
+	}
+
+	e.Logger.WithField("api_url", apiURL).Debug("set api url")
+
 	return oauth2.Config{
 		ClientID:     e.clientID,
 		ClientSecret: e.clientSecret,
 		Endpoint: oauth2.Endpoint{
-			TokenURL: apiTokenURL,
-			AuthURL:  apiAuthzURL,
+			TokenURL: tokenURL,
+			AuthURL:  authzURL,
 		},
 		RedirectURL: localCallbackURL,
 		Scopes:      []string{"external_api", "offline_access"},
@@ -34,6 +55,10 @@ func (e *Endpoint) getOauth2Config() oauth2.Config {
 }
 
 func (e *Endpoint) GetToken() (*oauth2.Token, error) {
+	if e.oauthToken != nil && e.oauthToken.Valid() {
+		return e.oauthToken, nil
+	}
+
 	conf := e.getOauth2Config()
 
 	tokenSrc := conf.TokenSource(context.Background(), e.oauthToken)
@@ -48,16 +73,7 @@ func (e *Endpoint) GetToken() (*oauth2.Token, error) {
 func (e *Endpoint) getClient(tc *config.TokenCache) (*http.Client, error) {
 	ctx := context.Background()
 
-	conf := &oauth2.Config{
-		ClientID:     e.clientID,
-		ClientSecret: e.clientSecret,
-		Endpoint: oauth2.Endpoint{
-			TokenURL: apiTokenURL,
-			AuthURL:  apiAuthzURL,
-		},
-		RedirectURL: localCallbackURL,
-		Scopes:      []string{"external_api", "offline_access"},
-	}
+	conf := e.getOauth2Config()
 
 	httpClient := &http.Client{Timeout: httpTimeoutSec * time.Second}
 
@@ -75,7 +91,7 @@ func (e *Endpoint) getClient(tc *config.TokenCache) (*http.Client, error) {
 	if !e.oauthToken.Valid() {
 		e.Logger.Debug("authenticating for new token")
 
-		authzCode, err := e.authenticate(ctx, conf)
+		authzCode, err := e.authenticate(ctx, &conf)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to authenticate")
 		}

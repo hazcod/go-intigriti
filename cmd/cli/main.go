@@ -33,7 +33,7 @@ func main() {
 		logger.WithError(err).Fatal("invalid configuration")
 	}
 
-	inti, err := v2.New(cfg.Auth.ClientID, cfg.Auth.ClientSecret, &cfg.Cache)
+	inti, err := v2.New(cfg.Auth.ClientID, cfg.Auth.ClientSecret, &cfg.Cache, logger)
 	if err != nil {
 		logger.WithError(err).Fatal("could not initialize client")
 	}

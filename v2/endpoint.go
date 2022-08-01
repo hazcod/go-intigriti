@@ -25,14 +25,18 @@ type Endpoint struct {
 	oauthToken *oauth2.Token
 }
 
-func New(clientToken string, clientSecret string, tc *config.TokenCache) (Endpoint, error) {
+func New(clientToken string, clientSecret string, tc *config.TokenCache, logger *logrus.Logger) (Endpoint, error) {
 	e := Endpoint{
 		clientID:     clientToken,
 		clientSecret: clientSecret,
 		clientTag:    clientTag,
 	}
 
-	e.Logger = logrus.New()
+	if logger == nil {
+		e.Logger = logrus.New()
+	} else {
+		e.Logger = logger
+	}
 
 	httpClient, err := e.getClient(tc)
 	if err != nil {
