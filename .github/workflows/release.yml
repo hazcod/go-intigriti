@@ -10,23 +10,23 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
       -
         name: Unshallow
         run: git fetch --prune --unshallow
       -
-        uses: go-semantic-release/action@v1
+        uses: go-semantic-release/action@v1.18
         id: semantic
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           changelog-file: .changelog
       -
         name: Set up Go
-        uses: actions/setup-go@v2.1.3
+        uses: actions/setup-go@v3
         if: steps.semantic.outputs.version != ''
       -
         name: Release
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v3.0.0
         if: steps.semantic.outputs.version != ''
         with:
           version: latest
