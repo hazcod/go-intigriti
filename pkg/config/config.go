@@ -92,7 +92,12 @@ func (c *Config) CacheAuth(l *logrus.Logger, path string, token *oauth2.Token) e
 	if err := lock.TryLock(); err != nil {
 		return errors.Wrap(err, "could not lock config file")
 	}
-	defer lock.Unlock()
+
+	defer func() {
+		if err := lock.Unlock(); err != nil {
+			l.WithError(err).Warn("could not release config lock")
+		}
+	}()
 
 	c.Cache.AccessToken = token.AccessToken
 	c.Cache.RefreshToken = token.RefreshToken

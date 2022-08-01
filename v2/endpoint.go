@@ -19,7 +19,6 @@ type Endpoint struct {
 
 	clientID     string
 	clientSecret string
-	refreshToken string
 	clientTag    string
 
 	client     *http.Client

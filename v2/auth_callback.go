@@ -47,8 +47,6 @@ func (e *Endpoint) getLocalHandler(state string, resultChan chan callbackResult,
 		doneChan <- struct{}{}
 
 		e.Logger.WithField("code", r.URL.Query().Get("code")).Debug("callback successfully got code")
-
-		return
 	})
 }
 
@@ -63,9 +61,10 @@ func (e *Endpoint) listenForCallback(localPort uint, state string, resultChan ch
 
 	go func() {
 		<-doneChan
-		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 		_ = srv.Shutdown(ctx)
 		e.Logger.Debug("shut down local callback listener")
+		cancel() // just to fix govet
 	}()
 
 	err := srv.ListenAndServe()
