@@ -1,4 +1,4 @@
-package intigriti
+package v1
 
 import (
 	"encoding/json"
@@ -14,19 +14,19 @@ const (
 	expectedTokenType  = "bearer"
 	expectedTokenScope = "external_api"
 	authRefreshNeeded  = time.Second * 10
-	httpTimeout 	   = time.Second * 5
+	httpTimeout        = time.Second * 5
 	mimeFormUrlEncoded = "application/x-www-form-urlencoded"
 )
 
 type authResponse struct {
-	AccessToken			string	`json:"access_token"`
-	ExpiresAtSeconds	int		`json:"expires_in"`
-	TokenType			string 	`json:"token_type"`
-	Scope 				string	`json:"scope"`
+	AccessToken      string `json:"access_token"`
+	ExpiresAtSeconds int    `json:"expires_in"`
+	TokenType        string `json:"token_type"`
+	Scope            string `json:"scope"`
 }
 
 func needsAuthRefresh(token, testTime time.Time) bool {
-	return token.Add( authRefreshNeeded ).Before( testTime )
+	return token.Add(authRefreshNeeded).Before(testTime)
 }
 
 func getNewAuthToken(apiUrl, clientId, clientSecret string) (authResponse authResponse, err error) {
@@ -49,7 +49,7 @@ func getNewAuthToken(apiUrl, clientId, clientSecret string) (authResponse authRe
 		return authResponse, errors.Wrap(err, "http request failed")
 	}
 
-	defer func(){ _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode > 399 {
 		return authResponse, errors.Errorf("received error code: %d", resp.StatusCode)
@@ -70,7 +70,7 @@ func getNewAuthToken(apiUrl, clientId, clientSecret string) (authResponse authRe
 func setNewAuthExpiration(e *Endpoint, tokenSeconds int) error {
 	now := time.Now()
 
-	newExpTime := now.Add(time.Second * time.Duration( tokenSeconds ))
+	newExpTime := now.Add(time.Second * time.Duration(tokenSeconds))
 	if newExpTime.Before(now) {
 		return errors.Errorf("new expiration time %s is before %s", newExpTime, now)
 	}
@@ -85,7 +85,7 @@ func setNewAuthExpiration(e *Endpoint, tokenSeconds int) error {
 func authenticate(e *Endpoint) error {
 	now := time.Now()
 
-	if ! needsAuthRefresh(e.authTokenExp, now) {
+	if !needsAuthRefresh(e.authTokenExp, now) {
 		e.Logger.WithField("auth_token_exp", e.authTokenExp).
 			Debug("no need to refresh auth token")
 		return nil
