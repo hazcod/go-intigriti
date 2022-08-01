@@ -7,6 +7,9 @@ Checkout the [docs](https://pkg.go.dev/github.com/intigriti/sdk-go)!
 
 API documentation is available on the [ReadMe](https://dash.readme.com/project/intigriti/v2.0/overview).
 
+We have a `v1/` for the regular external API and a `v2/` for the new v2.0 external API.
+Check with your customer success representative what version you ought to use.
+
 ### Usage
 ```go
 package main
