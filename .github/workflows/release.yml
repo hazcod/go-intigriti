@@ -15,8 +15,13 @@ jobs:
       name: Unshallow
       run: git fetch --prune --unshallow
     -
-      uses: go-semantic-release/action@v1
-      id: semantic
+      name: Set up Go
+      uses: actions/setup-go@v3
+    -
+      name: Release
+      uses: goreleaser/goreleaser-action@v3.0.0
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        changelog-file: .changelog
+        version: latest
+        args: release --config=.github/goreleaser.yml --rm-dist
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
