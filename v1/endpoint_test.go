@@ -1,4 +1,4 @@
-package intigriti
+package v1
 
 import "testing"
 

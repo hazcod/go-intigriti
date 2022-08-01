@@ -1,4 +1,4 @@
-package intigriti
+package v1
 
 import (
 	"encoding/json"
@@ -13,20 +13,20 @@ import (
 func TestNeedsAuthRefresh(t *testing.T) {
 	now := time.Now()
 
-	okTime := now.Add( time.Minute )
+	okTime := now.Add(time.Minute)
 	if needsAuthRefresh(okTime, now) {
 		t.Error("token needs refresh while it doesnt")
 	}
 
-	badTime := now.Add( time.Minute * -1 )
-	if ! needsAuthRefresh(badTime, now) {
+	badTime := now.Add(time.Minute * -1)
+	if !needsAuthRefresh(badTime, now) {
 		t.Error("token never needs refresh")
 	}
 }
 
 func TestSetNewAuthExpiration(t *testing.T) {
 	e := New("", "")
-	okToken  := time.Hour * 4
+	okToken := time.Hour * 4
 
 	if err := setNewAuthExpiration(&e, int(okToken.Seconds())); err != nil {
 		t.Error(err)
@@ -39,7 +39,7 @@ func TestSetNewAuthExpiration(t *testing.T) {
 }
 
 func getTestAuthTokenServer(token string, expiresAtSec int) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.NotFound(w, r)
 			return
@@ -47,13 +47,15 @@ func getTestAuthTokenServer(token string, expiresAtSec int) *httptest.Server {
 
 		w.Header().Set("Content-Type", "application/json")
 		authResponse := authResponse{
-			AccessToken:	  token,
+			AccessToken:      token,
 			ExpiresAtSeconds: expiresAtSec,
 			TokenType:        expectedTokenType,
 			Scope:            expectedTokenScope,
 		}
 		bytes, err := json.Marshal(&authResponse)
-		if err != nil { w.WriteHeader(http.StatusBadRequest) }
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
 		w.Write(bytes)
 	}))
 }
