@@ -1,6 +1,6 @@
 # go-intigriti
-Go library and commandline client for interacting with the [intigriti](https://www.intigriti.com/) v1 and v2 API.
-Checkout the [docs](https://pkg.go.dev/github.com/intigriti/sdk-go)!
+Go library and commandline client for interacting with the [intigriti](https://www.intigriti.com/) v1 and v2 external API.
+Checkout the [docs](https://pkg.go.dev/github.com/hazcod/go-intigriti)!
 
 
 ## Library 
