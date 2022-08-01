@@ -1,10 +1,13 @@
 before:
   hooks:
     - go mod download
+
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ .Tag }}-next"
+
 changelog:
   sort: asc
   filters:
@@ -12,15 +15,21 @@ changelog:
       - '^docs:'
       - '^test:'
       - '^chore'
+
 builds:
-  -
-    id: cli
-    dir: ./cmd/cli
+-
+  id: cli
+  dir: ./cmd/cli
+  env: [CGO_ENABLED=0]
+  ldflags: [-w -s -extldflags "-static"]
+  goos: [darwin, linux, windows, freebsd]
+  goarch: [amd64, arm64]
 
 archives:
-  - replacements:
-      darwin: macos
-      linux: linux
-      windows: windows
-      386: i386
-      amd64: x86_64
+-
+  replacements:
+    darwin: macos
+    linux: linux
+    windows: windows
+    386: i386
+    amd64: x86_64

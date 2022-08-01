@@ -1,8 +1,7 @@
-:wq
 test/
 build/
 isa
 .idea/
 dist/
 vendor/
-*.yml
+inti.yml
