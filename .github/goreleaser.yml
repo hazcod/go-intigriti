@@ -16,13 +16,16 @@ changelog:
       - '^test:'
       - '^chore'
 
+release:
+  disable: false
+
 builds:
 -
   id: cli
   dir: ./cmd/cli
   env: [CGO_ENABLED=0]
   ldflags: [-w -s -extldflags "-static"]
-  goos: [darwin, linux, windows, freebsd]
+  goos: [darwin, linux, windows]
   goarch: [amd64, arm64]
 
 archives:
@@ -31,5 +34,4 @@ archives:
     darwin: macos
     linux: linux
     windows: windows
-    386: i386
     amd64: x86_64
