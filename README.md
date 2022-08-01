@@ -1,7 +1,15 @@
 # go-intigriti
+
 Go library and commandline client for interacting with the [intigriti](https://www.intigriti.com/) v1 and v2 external API.
 Checkout the [docs](https://pkg.go.dev/github.com/hazcod/go-intigriti)!
 
+## Commandline client
+
+Usage:
+```shell
+% inti company list-programs
+% inti company list-submissions
+```
 
 ## Library 
 
@@ -39,12 +47,4 @@ go test -tags integration -v ./...
 
 # test on staging using inti.yml
 INTI_TOKEN_URL=="testing.api.com" INTI_AUTH_URL=="subs.testing.api.com" INTI_API_URL="api.testing.com" go test -tags integration -v ./...
-```
-
-## Commandline client
-
-Usage:
-```shell
-% inti company list-programs
-% inti company list-submissions
 ```
