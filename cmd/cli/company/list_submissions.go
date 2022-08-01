@@ -40,7 +40,7 @@ func ListSubmissions(l *logrus.Logger, inti v2.Endpoint) {
 		for _, subm := range submissions {
 			l.Infof(
 				"- %s (state %s, severity %s, code %s)",
-				subm.Title, subm.State.Status, subm.Severity.Value, subm.Code)
+				subm.Title, subm.State.Status.Value, subm.Severity.Value, subm.Code)
 		}
 	}
 }
