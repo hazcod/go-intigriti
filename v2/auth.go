@@ -1,0 +1,129 @@
+package v2
+
+import (
+	"context"
+	"github.com/hazcod/go-intigriti/pkg/config"
+	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
+	"net/http"
+	"time"
+)
+
+const (
+	httpTimeoutSec     = 5
+	stateLengthLetters = 10
+
+	localCallbackURL = "http://localhost:8999/"
+
+	apiTokenURL = "https://login.intigriti.com/connect/token"
+	apiAuthzURL = "https://login.intigriti.com/connect/authorize"
+	apiEndpoint = "https://api.intigriti.com/external"
+)
+
+func (e *Endpoint) getOauth2Config() oauth2.Config {
+	return oauth2.Config{
+		ClientID:     e.clientID,
+		ClientSecret: e.clientSecret,
+		Endpoint: oauth2.Endpoint{
+			TokenURL: apiTokenURL,
+			AuthURL:  apiAuthzURL,
+		},
+		RedirectURL: localCallbackURL,
+		Scopes:      []string{"external_api", "offline_access"},
+	}
+}
+
+func (e *Endpoint) GetToken() (*oauth2.Token, error) {
+	conf := e.getOauth2Config()
+
+	tokenSrc := conf.TokenSource(context.Background(), e.oauthToken)
+	token, err := tokenSrc.Token()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not retrieve refresh token")
+	}
+
+	return token, nil
+}
+
+func (e *Endpoint) getClient(tc *config.TokenCache) (*http.Client, error) {
+	ctx := context.Background()
+
+	conf := &oauth2.Config{
+		ClientID:     e.clientID,
+		ClientSecret: e.clientSecret,
+		Endpoint: oauth2.Endpoint{
+			TokenURL: apiTokenURL,
+			AuthURL:  apiAuthzURL,
+		},
+		RedirectURL: localCallbackURL,
+		Scopes:      []string{"external_api", "offline_access"},
+	}
+
+	httpClient := &http.Client{Timeout: httpTimeoutSec * time.Second}
+
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
+
+	e.oauthToken = &oauth2.Token{}
+	if tc.RefreshToken != "" {
+		e.Logger.Debug("trying to use cached token")
+		e.oauthToken.AccessToken = tc.AccessToken
+		e.oauthToken.RefreshToken = tc.RefreshToken
+		e.oauthToken.Expiry = tc.ExpiryDate
+		e.oauthToken.TokenType = tc.Type
+	}
+
+	if !e.oauthToken.Valid() {
+		e.Logger.Debug("authenticating for new token")
+
+		authzCode, err := e.authenticate(ctx, conf)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to authenticate")
+		}
+
+		e.Logger.Debug("exchanging code")
+
+		e.oauthToken, err = conf.Exchange(ctx, authzCode)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not exchange code")
+		}
+	}
+
+	authHttpClient := conf.Client(ctx, e.oauthToken)
+
+	e.Logger.Debug("successfully created client")
+
+	return authHttpClient, nil
+}
+
+func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config) (string, error) {
+	state := randomString(stateLengthLetters)
+
+	resultChan := make(chan callbackResult, 1)
+
+	go e.listenForCallback(8999, state, resultChan)
+	defer func() { go func() { resultChan <- callbackResult{} }() }()
+
+	// Redirect user to consent page to ask for permission 	for the scopes specified above.
+	url := oauth2Config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+	e.Logger.Warnf("Please authenticate: %s", url)
+
+	e.Logger.Debug("waiting for callback click")
+
+	var chanResult callbackResult
+	select {
+	case <-ctx.Done():
+		resultChan <- callbackResult{Error: errors.New("timeout")}
+		break
+	case chanResult = <-resultChan:
+		break
+	}
+
+	e.Logger.WithField("result", chanResult).Debug("received callback result")
+
+	if chanResult.Error != nil || (chanResult.Error == nil && chanResult.Code == "") {
+		return "", chanResult.Error
+	}
+
+	e.Logger.WithField("code", chanResult.Code).Debug("successfully retrieved new code")
+	return chanResult.Code, nil
+}

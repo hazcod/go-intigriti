@@ -1,13 +1,14 @@
 # go-intigriti
-Go library for interacting with the [intigriti](https://www.intigriti.com/) API.
-Checkout the [docs](https://pkg.go.dev/github.com/hazcod/go-intigriti)!
+Go library for interacting with the [intigriti](https://www.intigriti.com/) v2 API.
+Checkout the [docs](https://pkg.go.dev/github.com/intigriti/sdk-go)!
 
+API documentation is available on the [ReadMe](https://dash.readme.com/project/intigriti/v2.0/overview).
 ## Usage
 ```go
 package main
 
 import (
-	inti "github.com/hazcod/go-intigriti"
+	inti "github.com/hazcod/go-intigriti/v2"
 	"log"
 )
 

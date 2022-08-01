@@ -18,4 +18,4 @@ jobs:
       run: go mod download
     -
       name: Go build
-      run: go build -o /dev/null ./...
+      run: go build -o /dev/null ./cmd/cli

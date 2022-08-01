@@ -5,4 +5,4 @@ isa
 .idea/
 dist/
 vendor/
-test.yml
+*.yml
