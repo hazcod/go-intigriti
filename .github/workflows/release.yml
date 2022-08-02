@@ -22,8 +22,10 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
     -
+      run: git fetch -a && git pull
+    -
       name: Release
-      uses: goreleaser/goreleaser-action@v3.0.0
+      uses: goreleaser/goreleaser-action@v3
       with:
         version: latest
         args: release --config=.github/goreleaser.yml --rm-dist
