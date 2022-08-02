@@ -5,3 +5,5 @@ isa
 dist/
 vendor/
 inti.yml
+.semrel/
+.generated-go-semantic-release-changelog.md
