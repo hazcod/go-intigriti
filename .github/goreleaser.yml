@@ -8,9 +8,6 @@ checksum:
 snapshot:
   name_template: "{{ .Tag }}-next"
 
-gomod:
-  proxy: true
-
 changelog:
   sort: asc
   filters:
