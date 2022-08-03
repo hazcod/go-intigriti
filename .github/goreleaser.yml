@@ -19,10 +19,6 @@ changelog:
 release:
   disable: false
 
-archives:
--
-  name_template: "inti_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-
 sboms:
 -
   artifacts: archive
@@ -39,6 +35,7 @@ builds:
 
 archives:
 -
+  name_template: "inti_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
   replacements:
     darwin: macos
     linux: linux
