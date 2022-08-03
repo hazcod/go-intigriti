@@ -19,6 +19,10 @@ changelog:
 release:
   disable: false
 
+archives:
+-
+  name_template: "inti_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
 sboms:
 -
   artifacts: archive
@@ -40,4 +44,3 @@ archives:
     linux: linux
     windows: windows
     amd64: x86_64
-    go-intigriti: inti
