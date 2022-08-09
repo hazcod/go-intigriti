@@ -1,0 +1,42 @@
+name: release
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+    -
+      name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    -
+      name: Set up Go
+      uses: actions/setup-go@v3
+    -
+      name: Install syft
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    -
+      name: Upload SBOM to GitHub
+      uses: anchore/sbom-action@v0
+      with:
+        dependency-snapshot: true
+    -
+      name: Create release tag
+      uses: go-semantic-release/action@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    -
+      run: git fetch -a
+    -
+      name: Release
+      uses: goreleaser/goreleaser-action@v3
+      with:
+        version: latest
+        args: release --config=.github/goreleaser.yml --rm-dist
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
