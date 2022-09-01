@@ -5,6 +5,7 @@ import (
 	"github.com/intigriti/sdk-go/cmd/cli/company"
 	"github.com/intigriti/sdk-go/cmd/config"
 	intigriti "github.com/intigriti/sdk-go/pkg/api"
+	apiConfig "github.com/intigriti/sdk-go/pkg/config"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -33,13 +34,13 @@ func main() {
 		logger.WithError(err).Fatal("invalid configuration")
 	}
 
-	inti, err := intigriti.New(intigriti.Config{
+	inti, err := intigriti.New(apiConfig.Config{
 		Credentials: struct {
 			ClientID     string
 			ClientSecret string
 		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
 		OpenBrowser: true,
-		TokenCache: &intigriti.CachedToken{
+		TokenCache: &apiConfig.CachedToken{
 			RefreshToken: cfg.Cache.RefreshToken,
 			AccessToken:  cfg.Cache.AccessToken,
 			ExpiryDate:   cfg.Cache.ExpiryDate,

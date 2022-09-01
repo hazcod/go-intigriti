@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/intigriti/sdk-go/pkg/config"
 	"github.com/intigriti/sdk-go/pkg/ui"
 	"net/http"
 	"os"
@@ -93,7 +94,7 @@ func (e *Endpoint) getToken() (*oauth2.Token, error) {
 }
 
 // return the http client which automatically injects the right authentication credentials
-func (e *Endpoint) getClient(tc *CachedToken, openBrowser bool) (*http.Client, error) {
+func (e *Endpoint) getClient(tc *config.CachedToken, openBrowser bool) (*http.Client, error) {
 	ctx := context.Background()
 
 	conf := e.getOauth2Config()
