@@ -62,7 +62,7 @@ func main() {
 		    ClientID: "my-integration-client-id",
 		    ClientSecret: "my-integration-client-secret",
 	    },
-    })
+	})
 	if err != nil { log.Fatal(err) }
 	
 	programs, err := inti.GetPrograms()
