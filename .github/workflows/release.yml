@@ -28,13 +28,17 @@ jobs:
     -
       name: Create release tag
       uses: go-semantic-release/action@v1
+      id: semrel
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        force-bump-patch-version: false
     -
+      if: steps.semrel.outputs.version != ''
       run: git fetch -a
     -
       name: Release
       uses: goreleaser/goreleaser-action@v3
+      if: steps.semrel.outputs.version != ''
       with:
         version: latest
         args: release --config=.github/goreleaser.yml --rm-dist
