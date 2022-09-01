@@ -4,6 +4,7 @@ import (
 	"math/rand"
 )
 
+// randomString generates a random alphanumeric string at the given length
 func randomString(n int) string {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 

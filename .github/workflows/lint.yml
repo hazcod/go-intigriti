@@ -11,7 +11,6 @@ jobs:
       uses: actions/checkout@v3
     -
       name: golangci-lint
-      uses: reviewdog/action-golangci-lint@master
+      uses: golangci/golangci-lint-action@v3
       with:
-        github_token: ${{ secrets.github_token }}
-        golangci_lint_flags: "--config=.github/golangci.yml"
+        args: "--config=.github/golangci.yml"

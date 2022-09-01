@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"strings"
-
 	"github.com/intigriti/sdk-go/cmd/cli/company"
+	"github.com/intigriti/sdk-go/cmd/config"
 	intigriti "github.com/intigriti/sdk-go/pkg/api"
-	"github.com/intigriti/sdk-go/pkg/config"
+	apiConfig "github.com/intigriti/sdk-go/pkg/config"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 func main() {
@@ -34,20 +34,25 @@ func main() {
 		logger.WithError(err).Fatal("invalid configuration")
 	}
 
-	inti, err := intigriti.New(cfg.Auth.ClientID, cfg.Auth.ClientSecret, &cfg.Cache, logger)
+	inti, err := intigriti.New(apiConfig.Config{
+		Credentials: struct {
+			ClientID     string
+			ClientSecret string
+		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
+		OpenBrowser: true,
+		TokenCache: &apiConfig.CachedToken{
+			RefreshToken: cfg.Cache.RefreshToken,
+			AccessToken:  cfg.Cache.AccessToken,
+			ExpiryDate:   cfg.Cache.ExpiryDate,
+			Type:         cfg.Cache.Type,
+		},
+		Logger: logger,
+	})
 	if err != nil {
 		logger.WithError(err).Fatal("could not initialize client")
 	}
 
-	intiToken, err := inti.GetToken()
-	if err != nil {
-		logger.WithError(err).Warn("could not extract token, skipping token cache")
-	} else {
-		if err := cfg.CacheAuth(logger, *configPath, intiToken); err != nil {
-			logger.WithError(err).Warn("could not cache token")
-		}
-	}
-	logger.WithField("valid", intiToken.Valid()).Debug("retrieved auth token")
+	logger.WithField("authenticated", inti.IsAuthenticated()).Debug("initialized client")
 
 	if len(flag.Args()) == 0 {
 		logger.Fatalf("no command provided. See: company")

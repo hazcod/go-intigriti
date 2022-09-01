@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -13,6 +13,7 @@ const (
 	submissionUri = "/company/v2/programs/%s/submissions"
 )
 
+// GetSubmissions returns all submissions for the given program identifier
 func (e *Endpoint) GetSubmissions(programId string) ([]Submission, error) {
 	req, err := http.NewRequest(http.MethodGet, apiURL+fmt.Sprintf(submissionUri, programId), nil)
 	if err != nil {
@@ -30,7 +31,7 @@ func (e *Endpoint) GetSubmissions(programId string) ([]Submission, error) {
 
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not read response")
 	}

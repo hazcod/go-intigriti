@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 )
@@ -13,13 +13,17 @@ const (
 	ipLookupParamName = "ipAddress"
 )
 
+// IsKnownIP verifies whether the IP address is known to the Intigriti platform
+// this can be as a researcher or company account
 func (e *Endpoint) IsKnownIP(ip net.IP) (bool, error) {
 	req, err := http.NewRequest(http.MethodGet, apiURL+ipLookupURI, nil)
 	if err != nil {
 		return false, errors.Wrap(err, "could not create get programs")
 	}
 
-	req.URL.Query().Set(ipLookupParamName, ip.String())
+	queryValues := req.URL.Query()
+	queryValues.Set(ipLookupParamName, ip.String())
+	req.URL.RawQuery = queryValues.Encode()
 
 	resp, err := e.client.Do(req)
 	if err != nil {
@@ -32,7 +36,7 @@ func (e *Endpoint) IsKnownIP(ip net.IP) (bool, error) {
 
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return false, errors.Wrap(err, "could not read response")
 	}

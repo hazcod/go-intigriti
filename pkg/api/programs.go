@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -11,6 +11,7 @@ const (
 	programURI = "/company/v2/programs"
 )
 
+// GetPrograms returns all Intigriti programs for the current company
 func (e *Endpoint) GetPrograms() ([]Program, error) {
 	req, err := http.NewRequest(http.MethodGet, apiURL+programURI, nil)
 	if err != nil {
@@ -28,7 +29,7 @@ func (e *Endpoint) GetPrograms() ([]Program, error) {
 
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not read response")
 	}
