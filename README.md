@@ -45,13 +45,24 @@ package main
 
 import (
 	intigriti "github.com/intigriti/sdk-go/pkg/api"
+	"github.com/intigriti/sdk-go/pkg/config"
 	"log"
 )
 
 func main() {
 	// this will require manual logon every time your code runs
 	// look into persisting the TokenCache so refresh tokens can be saved
-	inti, err := intigriti.New("my-client-token", "my-client-secret", nil, nil)
+	// this will also launch an interactive Browser window to authenticate,
+	// look at config.OpenBrowser and config.TokenCache to prevent this
+	inti, err := intigriti.New(config.Config{
+		Credentials: struct {
+			ClientID     string
+			ClientSecret string
+		}{
+		    ClientID: "my-integration-client-id",
+		    ClientSecret: "my-integration-client-secret",
+	    },
+    })
 	if err != nil { log.Fatal(err) }
 	
 	programs, err := inti.GetPrograms()
