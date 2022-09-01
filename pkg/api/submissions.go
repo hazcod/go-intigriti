@@ -13,6 +13,7 @@ const (
 	submissionUri = "/company/v2/programs/%s/submissions"
 )
 
+// GetSubmissions returns all submissions for the given program identifier
 func (e *Endpoint) GetSubmissions(programId string) ([]Submission, error) {
 	req, err := http.NewRequest(http.MethodGet, apiURL+fmt.Sprintf(submissionUri, programId), nil)
 	if err != nil {

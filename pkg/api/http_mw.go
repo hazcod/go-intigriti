@@ -15,6 +15,7 @@ type TaggedRoundTripper struct {
 	Logger  *logrus.Logger
 }
 
+// RoundTrip injects a http request header on every request and logs request/response
 func (t TaggedRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("user-agent", clientTag)
 	resp, err := t.Proxied.RoundTrip(req)

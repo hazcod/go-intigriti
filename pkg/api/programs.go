@@ -11,6 +11,7 @@ const (
 	programURI = "/company/v2/programs"
 )
 
+// GetPrograms returns all Intigriti programs for the current company
 func (e *Endpoint) GetPrograms() ([]Program, error) {
 	req, err := http.NewRequest(http.MethodGet, apiURL+programURI, nil)
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func Command(l *logrus.Logger, cfg *config.Config, inti intigriti.Endpoint) {
+func Command(l *logrus.Logger, _ *config.Config, inti intigriti.Endpoint) {
 	if len(flag.Args()) < 2 {
 		l.Fatal("Missing subcommand. See: company <list,submissions>")
 	}
@@ -27,6 +27,10 @@ func Command(l *logrus.Logger, cfg *config.Config, inti intigriti.Endpoint) {
 
 	case "check-ip", "ip":
 		CheckIP(l, inti)
+		return
+
+	case "auth":
+		DoAuth(l, inti)
 		return
 
 	default:

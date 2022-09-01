@@ -39,15 +39,7 @@ func main() {
 		logger.WithError(err).Fatal("could not initialize client")
 	}
 
-	intiToken, err := inti.GetToken()
-	if err != nil {
-		logger.WithError(err).Warn("could not extract token, skipping token cache")
-	} else {
-		if err := cfg.CacheAuth(logger, *configPath, intiToken); err != nil {
-			logger.WithError(err).Warn("could not cache token")
-		}
-	}
-	logger.WithField("valid", intiToken.Valid()).Debug("retrieved auth token")
+	logger.WithField("authenticated", inti.IsAuthenticated()).Debug("initialized client")
 
 	if len(flag.Args()) == 0 {
 		logger.Fatalf("no command provided. See: company")

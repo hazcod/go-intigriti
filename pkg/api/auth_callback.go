@@ -21,9 +21,11 @@ type callbackResult struct {
 	Code  string
 }
 
-func (e *Endpoint) getLocalHandler(state string, resultChan chan callbackResult, doneChan chan struct{}) http.Handler {
+// this is the local http listener which will be called after successfully authenticating to Intigriti
+// here we will compare the state parameter to prevent csrf and extract the authorization code
+func (e *Endpoint) getLocalHandler(uri, state string, resultChan chan callbackResult, doneChan chan struct{}) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
+		if r.URL.Path != uri {
 			e.Logger.WithField("path", r.URL.Path).Debug("invalid callback path")
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -50,14 +52,15 @@ func (e *Endpoint) getLocalHandler(state string, resultChan chan callbackResult,
 	})
 }
 
-func (e *Endpoint) listenForCallback(localPort uint, state string, resultChan chan callbackResult) {
+// helper function that creates the callback listener and waits until a response is received or timeout expires
+func (e *Endpoint) listenForCallback(uri, localHost string, localPort uint, state string, resultChan chan callbackResult) {
 	e.Logger.WithField("port", localPort).Debug("listening for callback for new authorization code")
 
 	doneChan := make(chan struct{}, 2)
 
 	srv := http.Server{}
-	srv.Addr = fmt.Sprintf("localhost:%d", localPort)
-	srv.Handler = e.getLocalHandler(state, resultChan, doneChan)
+	srv.Addr = fmt.Sprintf("%s:%d", localHost, localPort)
+	srv.Handler = e.getLocalHandler(uri, state, resultChan, doneChan)
 
 	go func() {
 		<-doneChan
