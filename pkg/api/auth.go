@@ -139,8 +139,12 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 
 	e.Logger.WithField("result", chanResult).Debug("received callback result")
 
-	if chanResult.Error != nil || (chanResult.Error == nil && chanResult.Code == "") {
+	if chanResult.Error != nil {
 		return "", chanResult.Error
+	}
+
+	if chanResult.Code == "" {
+		return "", errors.New("got empty code")
 	}
 
 	e.Logger.WithField("code", chanResult.Code).Debug("successfully retrieved new code")
