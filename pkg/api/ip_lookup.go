@@ -21,7 +21,9 @@ func (e *Endpoint) IsKnownIP(ip net.IP) (bool, error) {
 		return false, errors.Wrap(err, "could not create get programs")
 	}
 
-	req.URL.Query().Set(ipLookupParamName, ip.String())
+	queryValues := req.URL.Query()
+	queryValues.Set(ipLookupParamName, ip.String())
+	req.URL.RawQuery = queryValues.Encode()
 
 	resp, err := e.client.Do(req)
 	if err != nil {
