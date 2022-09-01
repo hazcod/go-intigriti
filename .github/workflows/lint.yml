@@ -13,5 +13,4 @@ jobs:
       name: golangci-lint
       uses: golangci/golangci-lint-action@v3
       with:
-        github_token: ${{ secrets.github_token }}
-        golangci_lint_flags: "--config=.github/golangci.yml"
+        args: "--config=.github/golangci.yml"
