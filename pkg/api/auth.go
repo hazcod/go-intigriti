@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/intigriti/sdk-go/pkg/ui"
 	"net/http"
 	"os"
 	"time"
@@ -58,7 +59,7 @@ func init() {
 
 // retrieve the oauth2 configuration to use
 func (e *Endpoint) getOauth2Config() oauth2.Config {
-	e.Logger.WithField("api_url", apiURL).Debug("set api url")
+	e.logger.WithField("api_url", apiURL).Debug("set api url")
 
 	return oauth2.Config{
 		ClientID:     e.clientID,
@@ -93,7 +94,7 @@ func (e *Endpoint) getToken() (*oauth2.Token, error) {
 }
 
 // return the http client which automatically injects the right authentication credentials
-func (e *Endpoint) getClient(tc *config.TokenCache) (*http.Client, error) {
+func (e *Endpoint) getClient(tc *config.TokenCache, openBrowser bool) (*http.Client, error) {
 	ctx := context.Background()
 
 	conf := e.getOauth2Config()
@@ -106,7 +107,7 @@ func (e *Endpoint) getClient(tc *config.TokenCache) (*http.Client, error) {
 
 	// if our configuration contains a cached token, re-use it
 	if tc.RefreshToken != "" {
-		e.Logger.Debug("trying to use cached token")
+		e.logger.Debug("trying to use cached token")
 		e.oauthToken.AccessToken = tc.AccessToken
 		e.oauthToken.RefreshToken = tc.RefreshToken
 		e.oauthToken.Expiry = tc.ExpiryDate
@@ -115,14 +116,14 @@ func (e *Endpoint) getClient(tc *config.TokenCache) (*http.Client, error) {
 
 	// if the current token is invalid, fetch a new one
 	if !e.oauthToken.Valid() {
-		e.Logger.Debug("authenticating for new token")
+		e.logger.Debug("authenticating for new token")
 
-		authzCode, err := e.authenticate(ctx, &conf)
+		authzCode, err := e.authenticate(ctx, &conf, openBrowser)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to authenticate")
 		}
 
-		e.Logger.Debug("exchanging code")
+		e.logger.Debug("exchanging code")
 
 		e.oauthToken, err = conf.Exchange(ctx, authzCode)
 		if err != nil {
@@ -134,14 +135,14 @@ func (e *Endpoint) getClient(tc *config.TokenCache) (*http.Client, error) {
 	authHttpClient := conf.Client(ctx, e.oauthToken)
 
 	// inject a logging middleware into our http client
-	authHttpClient.Transport = TaggedRoundTripper{Proxied: authHttpClient.Transport, Logger: e.Logger}
-	e.Logger.Debug("successfully created client")
+	authHttpClient.Transport = TaggedRoundTripper{Proxied: authHttpClient.Transport, Logger: e.logger}
+	e.logger.Debug("successfully created client")
 
 	return authHttpClient, nil
 }
 
 // authenticate versus the Intigriti API, this requires user interaction
-func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config) (string, error) {
+func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config, openBrowser bool) (string, error) {
 	state := randomString(stateLengthLetters)
 
 	resultChan := make(chan callbackResult, 1)
@@ -153,9 +154,15 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 
 	// Redirect user to consent page to ask for permission 	for the scopes specified above.
 	url := oauth2Config.AuthCodeURL(state, oauth2.AccessTypeOffline)
-	e.Logger.Warnf("Please authenticate: %s", url)
+	e.logger.Warnf("Please authenticate: %s", url)
 
-	e.Logger.Debug("waiting for callback click")
+	if openBrowser {
+		if err := ui.Open(url); err != nil {
+			e.logger.WithField("url", url).WithError(err).Warnf("could not open browser")
+		}
+	}
+
+	e.logger.Debug("waiting for callback click")
 
 	var chanResult callbackResult
 	select {
@@ -166,7 +173,7 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 		break
 	}
 
-	e.Logger.WithField("result", chanResult).Debug("received callback result")
+	e.logger.WithField("result", chanResult).Debug("received callback result")
 
 	if chanResult.Error != nil {
 		return "", chanResult.Error
@@ -176,6 +183,6 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 		return "", errors.New("got empty code")
 	}
 
-	e.Logger.WithField("code", chanResult.Code).Debug("successfully retrieved new code")
+	e.logger.WithField("code", chanResult.Code).Debug("successfully retrieved new code")
 	return chanResult.Code, nil
 }

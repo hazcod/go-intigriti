@@ -10,7 +10,7 @@ import (
 )
 
 type Endpoint struct {
-	Logger *logrus.Logger
+	logger *logrus.Logger
 
 	clientID     string
 	clientSecret string
@@ -20,24 +20,41 @@ type Endpoint struct {
 	oauthToken *oauth2.Token
 }
 
+type Config struct {
+	// required authentication credentials
+	Credentials struct {
+		ClientID     string
+		ClientSecret string
+	}
+
+	// optional open a browser to complete authentication if user interaction is required
+	OpenBrowser bool
+
+	// optional token cache if caching previous credentials
+	TokenCache *config.TokenCache
+
+	// optional logger instance
+	Logger *logrus.Logger
+}
+
 // New creates an Intigriti endpoint object to use
 // this is the main object to interact with the SDK
-func New(clientToken string, clientSecret string, tc *config.TokenCache, logger *logrus.Logger) (Endpoint, error) {
+func New(cfg Config) (Endpoint, error) {
 	e := Endpoint{
-		clientID:     clientToken,
-		clientSecret: clientSecret,
+		clientID:     cfg.Credentials.ClientID,
+		clientSecret: cfg.Credentials.ClientSecret,
 		clientTag:    clientTag,
 	}
 
 	// initialize the logger to use
-	if logger == nil {
-		e.Logger = logrus.New()
+	if cfg.Logger == nil {
+		e.logger = logrus.New()
 	} else {
-		e.Logger = logger
+		e.logger = cfg.Logger
 	}
 
 	// prepare our oauth2-ed http client
-	httpClient, err := e.getClient(tc)
+	httpClient, err := e.getClient(cfg.TokenCache, cfg.OpenBrowser)
 	if err != nil {
 		return e, errors.Wrap(err, "could not init client")
 	}

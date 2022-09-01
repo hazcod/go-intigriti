@@ -34,7 +34,15 @@ func main() {
 		logger.WithError(err).Fatal("invalid configuration")
 	}
 
-	inti, err := intigriti.New(cfg.Auth.ClientID, cfg.Auth.ClientSecret, &cfg.Cache, logger)
+	inti, err := intigriti.New(intigriti.Config{
+		Credentials: struct {
+			ClientID     string
+			ClientSecret string
+		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
+		OpenBrowser: true,
+		TokenCache:  &cfg.Cache,
+		Logger:      logger,
+	})
 	if err != nil {
 		logger.WithError(err).Fatal("could not initialize client")
 	}
