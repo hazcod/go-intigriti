@@ -2,10 +2,10 @@ package company
 
 import (
 	"flag"
+	"github.com/intigriti/sdk-go/cmd/config"
 	"strings"
 
 	intigriti "github.com/intigriti/sdk-go/pkg/api"
-	"github.com/intigriti/sdk-go/pkg/config"
 	"github.com/sirupsen/logrus"
 )
 

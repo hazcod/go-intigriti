@@ -2,8 +2,8 @@ package api
 
 import (
 	"net/http"
+	"time"
 
-	"github.com/intigriti/sdk-go/pkg/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -20,6 +20,13 @@ type Endpoint struct {
 	oauthToken *oauth2.Token
 }
 
+type CachedToken struct {
+	RefreshToken string
+	AccessToken  string
+	ExpiryDate   time.Time
+	Type         string
+}
+
 type Config struct {
 	// required authentication credentials
 	Credentials struct {
@@ -31,7 +38,7 @@ type Config struct {
 	OpenBrowser bool
 
 	// optional token cache if caching previous credentials
-	TokenCache *config.TokenCache
+	TokenCache *CachedToken
 
 	// optional logger instance
 	Logger *logrus.Logger

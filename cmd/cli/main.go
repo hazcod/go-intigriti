@@ -2,12 +2,11 @@ package main
 
 import (
 	"flag"
-	"strings"
-
 	"github.com/intigriti/sdk-go/cmd/cli/company"
+	"github.com/intigriti/sdk-go/cmd/config"
 	intigriti "github.com/intigriti/sdk-go/pkg/api"
-	"github.com/intigriti/sdk-go/pkg/config"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 func main() {
@@ -40,8 +39,13 @@ func main() {
 			ClientSecret string
 		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
 		OpenBrowser: true,
-		TokenCache:  &cfg.Cache,
-		Logger:      logger,
+		TokenCache: &intigriti.CachedToken{
+			RefreshToken: cfg.Cache.RefreshToken,
+			AccessToken:  cfg.Cache.AccessToken,
+			ExpiryDate:   cfg.Cache.ExpiryDate,
+			Type:         cfg.Cache.Type,
+		},
+		Logger: logger,
 	})
 	if err != nil {
 		logger.WithError(err).Fatal("could not initialize client")

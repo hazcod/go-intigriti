@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/intigriti/sdk-go/pkg/config"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
@@ -94,7 +93,7 @@ func (e *Endpoint) getToken() (*oauth2.Token, error) {
 }
 
 // return the http client which automatically injects the right authentication credentials
-func (e *Endpoint) getClient(tc *config.TokenCache, openBrowser bool) (*http.Client, error) {
+func (e *Endpoint) getClient(tc *CachedToken, openBrowser bool) (*http.Client, error) {
 	ctx := context.Background()
 
 	conf := e.getOauth2Config()
