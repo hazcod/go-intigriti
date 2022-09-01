@@ -20,6 +20,7 @@ type Config struct {
 	}
 
 	// optional open a browser to complete authentication if user interaction is required
+	// TODO: move ui/ to the commandline client subpackage
 	OpenBrowser bool
 
 	// optional token cache if caching previous credentials
