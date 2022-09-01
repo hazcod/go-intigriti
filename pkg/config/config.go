@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
+	"os"
 	"time"
 )
 
@@ -39,7 +39,7 @@ func Load(logger *logrus.Logger, path string) (*Config, error) {
 	var config Config
 
 	if path != "" {
-		configBytes, err := ioutil.ReadFile(path)
+		configBytes, err := os.ReadFile(path)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not load configuration file")
 		}
@@ -64,7 +64,7 @@ func (c *Config) Save(logger *logrus.Logger, path string) error {
 		return errors.Wrap(err, "could not serialize config")
 	}
 
-	if err := ioutil.WriteFile(path, b, 0600); err != nil {
+	if err := os.WriteFile(path, b, 0600); err != nil {
 		return errors.Wrap(err, "could not write config")
 	}
 

@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -29,7 +29,7 @@ func (e *Endpoint) GetPrograms() ([]Program, error) {
 
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not read response")
 	}
