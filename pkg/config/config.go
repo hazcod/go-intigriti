@@ -12,6 +12,10 @@ type CachedToken struct {
 	Type         string
 }
 
+type InteractiveAuthenticator interface {
+	OpenURL(url string) error
+}
+
 type Config struct {
 	// required authentication credentials
 	Credentials struct {
@@ -19,9 +23,9 @@ type Config struct {
 		ClientSecret string
 	}
 
-	// optional open a browser to complete authentication if user interaction is required
-	// TODO: move ui/ to the commandline client subpackage
-	OpenBrowser bool
+	// optionally open a browser to complete authentication if user interaction is required
+	OpenBrowser   bool
+	Authenticator InteractiveAuthenticator
 
 	// optional token cache if caching previous credentials
 	TokenCache *CachedToken

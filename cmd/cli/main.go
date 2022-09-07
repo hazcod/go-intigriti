@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/intigriti/sdk-go/cmd/cli/company"
+	"github.com/intigriti/sdk-go/cmd/cli/ui"
 	"github.com/intigriti/sdk-go/cmd/config"
 	intigriti "github.com/intigriti/sdk-go/pkg/api"
 	apiConfig "github.com/intigriti/sdk-go/pkg/config"
@@ -34,18 +35,28 @@ func main() {
 		logger.WithError(err).Fatal("invalid configuration")
 	}
 
+	browser := ui.SystemBrowser{}
+
 	inti, err := intigriti.New(apiConfig.Config{
+		// our Intigriti API credentials
 		Credentials: struct {
 			ClientID     string
 			ClientSecret string
 		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
-		OpenBrowser: true,
+
+		// pop up a browser when necessary to authenticate
+		OpenBrowser:   false,
+		Authenticator: browser,
+
+		// cache tokens as much as possible to reduce times we have to authenticate
 		TokenCache: &apiConfig.CachedToken{
 			RefreshToken: cfg.Cache.RefreshToken,
 			AccessToken:  cfg.Cache.AccessToken,
 			ExpiryDate:   cfg.Cache.ExpiryDate,
 			Type:         cfg.Cache.Type,
 		},
+
+		// use our logger and our logging levels
 		Logger: logger,
 	})
 	if err != nil {
