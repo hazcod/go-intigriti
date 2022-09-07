@@ -8,10 +8,20 @@ jobs:
     steps:
     -
       name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3.0.2
     -
       name: Unshallow
       run: git fetch --prune --unshallow
+    -
+      id: vars
+      run: |
+        echo ::set-output name=go_version::$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo "Using Go version ${{ steps.vars.outputs.go_version }}"
+    -
+      name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ steps.vars.outputs.go_version }}
     -
       name: Set up Go
       uses: actions/setup-go@v3

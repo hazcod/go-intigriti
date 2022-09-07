@@ -3,12 +3,12 @@ name: approve
 
 jobs:
 
-  approve-dependabot:
+  approve:
     name: dependabot
     if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
     runs-on: ubuntu-latest
     steps:
-    -
-      uses: hmarr/auto-approve-action@v2.2.1
-      with:
-        github-token: "${{ secrets.GITHUB_TOKEN }}"
+      -
+        uses: hmarr/auto-approve-action@v2.2.1
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"

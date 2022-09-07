@@ -1,4 +1,4 @@
-name: "security"
+name: security
 
 on:
   push:
@@ -9,9 +9,10 @@ on:
     - cron: '0 5 * * 6'
 
 jobs:
-  codescan:
 
-    name: code-scan
+  codeql:
+
+    name: codeql
     runs-on: ubuntu-latest
 
     steps:
@@ -26,3 +27,54 @@ jobs:
     -
       name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
+
+  govulncheck:
+
+    name: govulncheck
+    runs-on: ubuntu-latest
+
+    steps:
+    -
+      name: Checkout repository
+      uses: actions/checkout@v3
+    -
+      id: vars
+      run: |
+        echo ::set-output name=go_version::$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo "Using Go version ${{ steps.vars.outputs.go_version }}"
+    -
+      name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ steps.vars.outputs.go_version }}
+    -
+      name: check for go vulnerabilities
+      uses: kmulvey/govulncheck-action@main
+      with:
+        packages: ./...
+
+  trivy:
+
+    name: trivy
+    runs-on: ubuntu-latest
+
+    steps:
+    -
+      uses: actions/checkout@v3
+    -
+      name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        hide-progress: false
+        exit-code: '1'
+        ignore-unfixed: true
+        scan-type: 'fs'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+    -
+      name: Upload Trivy scan results to GitHub Security tab
+      if: always()
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
