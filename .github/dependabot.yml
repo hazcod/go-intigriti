@@ -17,3 +17,11 @@ updates:
     time: '04:00'
   open-pull-requests-limit: 10
   target-branch: dev
+
+- package-ecosystem: docker
+  directory: "/.github/go/"
+  schedule:
+    interval: daily
+    time: '04:00'
+  open-pull-requests-limit: 10
+  target-branch: dev
