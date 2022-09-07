@@ -12,7 +12,7 @@ jobs:
 
   codeql:
 
-    name: code-scan
+    name: codeql
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,7 @@ jobs:
 
   govulncheck:
 
-    name: code-scan
+    name: govulncheck
     runs-on: ubuntu-latest
 
     steps:
@@ -55,7 +55,7 @@ jobs:
 
   trivy:
 
-    name: code-scan
+    name: trivy
     runs-on: ubuntu-latest
 
     steps:
