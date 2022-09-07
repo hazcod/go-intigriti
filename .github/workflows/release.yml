@@ -14,27 +14,41 @@ jobs:
       with:
         fetch-depth: 0
     -
+      id: vars
+      run: |
+        echo ::set-output name=go_version::$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo "Using Go version ${{ steps.vars.outputs.go_version }}"
+    -
+      name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ steps.vars.outputs.go_version }}
+    -
       name: Set up Go
       uses: actions/setup-go@v3
     -
-      name: Install syft
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-    -
-      name: Upload SBOM to GitHub
-      uses: anchore/sbom-action@v0
+      name: Run Trivy in GitHub SBOM mode and submit results to Dependency Snapshots
+      uses: aquasecurity/trivy-action@master
       with:
-        dependency-snapshot: true
+        scan-type: 'fs'
+        format: 'github'
+        output: 'dependency-results.sbom.json'
+        image-ref: '.'
+        github-pat: ${{ secrets.GH_PRIVATEREPO_TOKEN }}
+    -
+      name: Setup git for private go module access
+      run: |
+        go env -w GOPRIVATE=github.com/intigriti
+        echo "machine github.com login ${{ secrets.GH_PRIVATEREPO_TOKEN }}" >> ~/.netrc
     -
       name: Create release tag
       uses: go-semantic-release/action@v1
       id: semrel
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        force-bump-patch-version: false
     -
-      if: steps.semrel.outputs.version != ''
       run: git fetch -a
+      if: steps.semrel.outputs.version != ''
     -
       name: Release
       uses: goreleaser/goreleaser-action@v3
