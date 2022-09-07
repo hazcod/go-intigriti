@@ -37,7 +37,7 @@ Future calls will not need to since your token will be cached in your configurat
 
 ## Library 
 
-API Swagger documentation is available on the [ReadMe](https://dash.readme.com/project/intigriti/v2.0/overview).
+API Swagger documentation is available on the [ReadMe](https://intigriti.readme.io/reference/introduction).
 
 ### Usage
 ```go
@@ -61,7 +61,7 @@ func main() {
 		}{
 		    ClientID: "my-integration-client-id",
 		    ClientSecret: "my-integration-client-secret",
-	    },
+		},
 	})
 	if err != nil { log.Fatal(err) }
 	
