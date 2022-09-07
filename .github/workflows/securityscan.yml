@@ -51,7 +51,7 @@ jobs:
       name: check for go vulnerabilities
       uses: kmulvey/govulncheck-action@main
       with:
-        packages: '.'
+        packages: ./...
 
   trivy:
 
