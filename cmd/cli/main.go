@@ -45,7 +45,7 @@ func main() {
 		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
 
 		// pop up a browser when necessary to authenticate
-		OpenBrowser:   false,
+		OpenBrowser:   true,
 		Authenticator: browser,
 
 		// cache tokens as much as possible to reduce times we have to authenticate
