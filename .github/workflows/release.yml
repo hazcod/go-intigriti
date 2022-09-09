@@ -69,7 +69,7 @@ jobs:
       id: hash
       if: steps.semrel.outputs.version != ''
       run: |
-        echo "Hashes $(find -type f dist/ -exec shasum256 {} \; | base64 -w0)"
+        echo "Hashes $(find dist/ -type f -exec shasum256 {} \; | base64 -w0)"
         echo "::set-output name=hashes::$(find -type f dist/ -exec shasum256 {} \; | base64 -w0)"
   
   provenance:
