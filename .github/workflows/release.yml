@@ -43,6 +43,10 @@ jobs:
         go env -w GOPRIVATE=github.com/intigriti
         echo "machine github.com login ${{ secrets.GH_PRIVATEREPO_TOKEN }}" >> ~/.netrc
     -
+      name: Install syft
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+    -
       name: Create release tag
       uses: go-semantic-release/action@v1
       id: semrel
