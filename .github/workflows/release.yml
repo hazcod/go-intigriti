@@ -69,12 +69,11 @@ jobs:
       id: hash
       if: steps.semrel.outputs.version != ''
       run: |
-        echo "Hashes $(find dist/ -type f -exec sha256sum {} \; | base64 -w0)"
-        echo "::set-output name=hashes::$(find dist/ -type f -exec sha256sum {} \; | base64 -w0)"
+        echo "::set-output name=hashes::$(find dist -type f -exec shasum -a256 {} \; | base64 -w0)"
   
   provenance:
     needs: [goreleaser]
-    if: needs.goreleaser.outputs.hashes != ''
+    if: jobs.goreleaser.outputs.hashes != ''
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
