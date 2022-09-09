@@ -34,6 +34,10 @@ jobs:
         image-ref: '.'
         github-pat: ${{ secrets.GH_PRIVATEREPO_TOKEN }}
     -
+      name: Remove SBOM result
+      run: |
+        rm dependency-results.sbom.json
+    -
       name: Setup git for private go module access
       run: |
         go env -w GOPRIVATE=github.com/intigriti
