@@ -69,8 +69,8 @@ jobs:
       id: hash
       if: steps.semrel.outputs.version != ''
       run: |
-        echo "Hashes $(ls dist/* | xargs shasum -a256 | base64 -w0)"
-        echo "::set-output name=hashes::$(ls dist/* | xargs shasum -a256 | base64 -w0)"
+        echo "Hashes $(find -type f dist/ -exec shasum256 {} \; | base64 -w0)"
+        echo "::set-output name=hashes::$(find -type f dist/ -exec shasum256 {} \; | base64 -w0)"
   
   provenance:
     needs: [goreleaser]
