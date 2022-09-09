@@ -56,3 +56,13 @@ jobs:
         args: release --config=.github/goreleaser.yml --rm-dist
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    -
+      name: Generate dist hashes
+      id: hash
+      run: |
+        echo "::set-output name=hashes::$(sha256sum artifact1 artifact2 | base64 -w0)"
+    -
+      name: SLSA provenance
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0
+      with:
+        base64-subjects: "${{ steps.hash.outputs.hashes }}"
