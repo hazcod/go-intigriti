@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest  
     outputs:
       hashes: ${{ steps.hashes.outputs.hashes }}
+      version: ${{ steps.semrel.outputs.version }}
     steps:
     -
       name: Checkout
@@ -88,3 +89,4 @@ jobs:
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true
+      tag-name: "${{ needs.goreleaser.outputs.version }}"
