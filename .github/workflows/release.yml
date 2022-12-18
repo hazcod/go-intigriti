@@ -6,7 +6,10 @@ on:
 
 jobs:
   goreleaser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  
+    outputs:
+      hashes: ${{ steps.hashes.outputs.hashes }}
+      version: ${{ steps.semrel.outputs.version }}
     steps:
     -
       name: Checkout
@@ -16,8 +19,9 @@ jobs:
     -
       id: vars
       run: |
-        echo ::set-output name=go_version::$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
-        echo "Using Go version ${{ steps.vars.outputs.go_version }}"
+        goVersion=$(grep '^FROM go' .github/go/Dockerfile | cut -d ' ' -f 2 | cut -d ':' -f 2)
+        echo ::set-output name=go_version::${goVersion}
+        echo "Using Go version ${goVersion}"
     -
       name: Set up Go
       uses: actions/setup-go@v3
@@ -33,10 +37,18 @@ jobs:
         image-ref: '.'
         github-pat: ${{ secrets.GH_PRIVATEREPO_TOKEN }}
     -
+      name: Remove SBOM result
+      run: |
+        rm dependency-results.sbom.json
+    -
       name: Setup git for private go module access
       run: |
         go env -w GOPRIVATE=github.com/intigriti
         echo "machine github.com login ${{ secrets.GH_PRIVATEREPO_TOKEN }}" >> ~/.netrc
+    -
+      name: Install syft
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
     -
       name: Create release tag
       uses: go-semantic-release/action@v1
@@ -55,3 +67,25 @@ jobs:
         args: release --config=.github/goreleaser.yml --rm-dist
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    -
+      name: Generate dist hashes
+      id: hashes
+      if: steps.semrel.outputs.version != ''
+      env:
+        ARTIFACTS: "${{ steps.goreleaser.outputs.artifacts }}"
+      run: |
+        checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
+        echo "::set-output name=hashes::$(cat $checksum_file | base64 -w0)"
+  
+  provenance:
+    needs: [goreleaser]
+    if: needs.goreleaser.outputs.hashes != ''
+    permissions:
+      actions: read # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+    with:
+      base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
+      upload-assets: true
+      upload-tag-name: "${{ needs.goreleaser.outputs.version }}"

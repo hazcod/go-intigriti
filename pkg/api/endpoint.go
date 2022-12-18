@@ -36,7 +36,12 @@ func New(cfg config.Config) (Endpoint, error) {
 	}
 
 	// prepare our oauth2-ed http client
-	httpClient, err := e.getClient(cfg.TokenCache, cfg.OpenBrowser)
+	authenticator := &cfg.Authenticator
+	if !cfg.OpenBrowser {
+		authenticator = nil
+	}
+
+	httpClient, err := e.getClient(cfg.TokenCache, authenticator)
 	if err != nil {
 		return e, errors.Wrap(err, "could not init client")
 	}

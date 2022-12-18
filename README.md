@@ -23,7 +23,7 @@ Usage:
 
 ### Setup
 
-Ensure v2 support is enabled on your company account. Afterwards create the following configuration file:
+Ensure external API v2 support is enabled on your company account. Afterwards create the following configuration file:
 
 ```yaml
 log.level: info
@@ -37,7 +37,7 @@ Future calls will not need to since your token will be cached in your configurat
 
 ## Library 
 
-API Swagger documentation is available on the [ReadMe](https://dash.readme.com/project/intigriti/v2.0/overview).
+API Swagger documentation is available on the [ReadMe](https://intigriti.readme.io/reference/introduction).
 
 ### Usage
 ```go
@@ -54,6 +54,7 @@ func main() {
 	// look into persisting the TokenCache so refresh tokens can be saved
 	// this will also launch an interactive Browser window to authenticate,
 	// look at config.OpenBrowser and config.TokenCache to prevent this
+	// or how the cli does it at https://github.com/intigriti/sdk-go/blob/2eeb6a9fcee42fc4ac1ada7f5dc6d2db5446c15d/cmd/config/config.go#L86
 	inti, err := intigriti.New(config.Config{
 		Credentials: struct {
 			ClientID     string
@@ -61,7 +62,7 @@ func main() {
 		}{
 		    ClientID: "my-integration-client-id",
 		    ClientSecret: "my-integration-client-secret",
-	    },
+		},
 	})
 	if err != nil { log.Fatal(err) }
 	

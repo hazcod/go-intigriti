@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/intigriti/sdk-go/pkg/config"
-	"github.com/intigriti/sdk-go/pkg/ui"
 	"net/http"
 	"os"
 	"time"
@@ -94,7 +93,7 @@ func (e *Endpoint) getToken() (*oauth2.Token, error) {
 }
 
 // return the http client which automatically injects the right authentication credentials
-func (e *Endpoint) getClient(tc *config.CachedToken, openBrowser bool) (*http.Client, error) {
+func (e *Endpoint) getClient(tc *config.CachedToken, auth *config.InteractiveAuthenticator) (*http.Client, error) {
 	ctx := context.Background()
 
 	conf := e.getOauth2Config()
@@ -118,7 +117,7 @@ func (e *Endpoint) getClient(tc *config.CachedToken, openBrowser bool) (*http.Cl
 	if !e.oauthToken.Valid() {
 		e.logger.Debug("authenticating for new token")
 
-		authzCode, err := e.authenticate(ctx, &conf, openBrowser)
+		authzCode, err := e.authenticate(ctx, &conf, auth)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to authenticate")
 		}
@@ -142,7 +141,7 @@ func (e *Endpoint) getClient(tc *config.CachedToken, openBrowser bool) (*http.Cl
 }
 
 // authenticate versus the Intigriti API, this requires user interaction
-func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config, openBrowser bool) (string, error) {
+func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config, auth *config.InteractiveAuthenticator) (string, error) {
 	state := randomString(stateLengthLetters)
 
 	resultChan := make(chan callbackResult, 1)
@@ -156,8 +155,11 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 	url := oauth2Config.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	e.logger.Warnf("Please authenticate: %s", url)
 
-	if openBrowser {
-		if err := ui.Open(url); err != nil {
+	if auth != nil {
+		e.logger.Info("opening system browser to authenticate")
+
+		authenticator := *auth
+		if err := authenticator.OpenURL(url); err != nil {
 			e.logger.WithField("url", url).WithError(err).Warnf("could not open browser")
 		}
 	}
