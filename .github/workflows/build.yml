@@ -29,10 +29,10 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
       -
         name: Build
-        uses: goreleaser/goreleaser-action@v3.2.0
+        uses: goreleaser/goreleaser-action@v4.1.0
         with:
           version: latest
-          args: release --config=.github/goreleaser.yml --rm-dist
+          args: build --snapshot --config=.github/goreleaser.yml --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       -
