@@ -8,7 +8,6 @@ updates:
     interval: daily
     time: '04:00'
   open-pull-requests-limit: 10
-  target-branch: dev
   commit-message:
     prefix: "chore(cicd):"
 
@@ -18,7 +17,6 @@ updates:
     interval: daily
     time: '04:00'
   open-pull-requests-limit: 10
-  target-branch: dev
   commit-message:
     prefix: "chore(go):"
 
@@ -28,6 +26,5 @@ updates:
     interval: daily
     time: '04:00'
   open-pull-requests-limit: 10
-  target-branch: dev
   commit-message:
     prefix: "chore(go):"
