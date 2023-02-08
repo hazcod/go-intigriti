@@ -7,18 +7,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
-	submissionUri = "/company/v2/programs/%s/submissions"
+	submissionUri = "/company/v2/submissions"
 )
 
-func (e *Endpoint) GetSubmissions(programId string) ([]Submission, error) {
-	req, err := http.NewRequest(http.MethodGet, apiEndpoint+fmt.Sprintf(submissionUri, programId), nil)
+func (e *Endpoint) GetSubmissions() ([]Submission, error) {
+	req, err := http.NewRequest(http.MethodGet, e.URLAPI+submissionUri, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create get programs")
 	}
-
 	resp, err := e.client.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get programs")
@@ -44,16 +44,57 @@ func (e *Endpoint) GetSubmissions(programId string) ([]Submission, error) {
 	return submissions, nil
 }
 
+// json-to-go from https://api.intigriti.com/external/swagger/index.html?urls.primaryName=V1.2#/Submissions/Submissions_Get
 type Submission struct {
-	Code              string      `json:"code"`
-	InternalReference interface{} `json:"internalReference"`
-	Title             string      `json:"title"`
-	ProgramID         string      `json:"programId"`
-	Severity          struct {
-		ID     int         `json:"id"`
-		Vector interface{} `json:"vector"`
-		Value  string      `json:"value"`
-	} `json:"severity"`
+	Code        string `json:"code"`
+	Originators struct {
+		ProgramID   string `json:"programId"`
+		PentestCode string `json:"pentestCode"`
+	} `json:"originators"`
+	InternalReference struct {
+		Reference string `json:"reference"`
+		URL       string `json:"url"`
+	} `json:"internalReference"`
+	Title  string `json:"title"`
+	Report struct {
+		OriginalTitle string `json:"originalTitle"`
+		Type          struct {
+			Name     string `json:"name"`
+			Category string `json:"category"`
+			Cwe      string `json:"cwe"`
+		} `json:"type"`
+		Questions []struct {
+			Question string `json:"question"`
+			Type     struct {
+				ID    int    `json:"id"`
+				Value string `json:"value"`
+			} `json:"type"`
+			Answer string `json:"answer"`
+		} `json:"questions"`
+		Domain struct {
+			Name       string `json:"name"`
+			Motivation string `json:"motivation"`
+			Type       struct {
+				ID    int    `json:"id"`
+				Value string `json:"value"`
+			} `json:"type"`
+			Tier struct {
+				ID    int    `json:"id"`
+				Value string `json:"value"`
+			} `json:"tier"`
+			Description string `json:"description"`
+		} `json:"domain"`
+		EndpointVulnerableComponent string `json:"endpointVulnerableComponent"`
+		PocDescription              string `json:"pocDescription"`
+		Impact                      string `json:"impact"`
+		PersonalData                bool   `json:"personalData"`
+		RecommendedSolution         string `json:"recommendedSolution"`
+		Attachments                 []struct {
+			URL  string `json:"url"`
+			Code int    `json:"code"`
+		} `json:"attachments"`
+		IP string `json:"ip"`
+	} `json:"report"`
 	State struct {
 		Status struct {
 			ID    int    `json:"id"`
@@ -63,34 +104,107 @@ type Submission struct {
 			ID    int    `json:"id"`
 			Value string `json:"value"`
 		} `json:"closeReason"`
+		DuplicateInfo struct {
+			ParentSubmissionCode string   `json:"parentSubmissionCode"`
+			ChildSubmissionCodes []string `json:"childSubmissionCodes"`
+		} `json:"duplicateInfo"`
+		ValidatedAt int `json:"validatedAt"`
+		AcceptedAt  int `json:"acceptedAt"`
+		ClosedAt    int `json:"closedAt"`
+		ArchivedAt  int `json:"archivedAt"`
 	} `json:"state"`
-	TotalPayout struct {
-		Value    float64 `json:"value"`
-		Currency string  `json:"currency"`
-	} `json:"totalPayout"`
-	CreatedAt        int           `json:"createdAt"`
-	LastUpdatedAt    int           `json:"lastUpdatedAt"`
-	AwaitingFeedback bool          `json:"awaitingFeedback"`
-	Destroyed        bool          `json:"destroyed"`
-	Assignee         interface{}   `json:"assignee"`
-	Tags             []interface{} `json:"tags"`
-	GroupID          interface{}   `json:"groupId"`
-	Submitter        struct {
-		Ranking struct {
-			Rank       int         `json:"rank"`
-			Reputation int         `json:"reputation"`
-			Streak     interface{} `json:"streak"`
+	Severity struct {
+		ID     int    `json:"id"`
+		Vector string `json:"vector"`
+		Value  string `json:"value"`
+	} `json:"severity"`
+	AwaitingFeedback bool `json:"awaitingFeedback"`
+	Reward           struct {
+		TotalPayout struct {
+			Value    int    `json:"value"`
+			Currency string `json:"currency"`
+		} `json:"totalPayout"`
+		TotalBountyPayout struct {
+			Value    int    `json:"value"`
+			Currency string `json:"currency"`
+		} `json:"totalBountyPayout"`
+		TotalBonusPayout struct {
+			Value    int    `json:"value"`
+			Currency string `json:"currency"`
+		} `json:"totalBonusPayout"`
+		PossibleBounty struct {
+			Value    int    `json:"value"`
+			Currency string `json:"currency"`
+		} `json:"possibleBounty"`
+	} `json:"reward"`
+	CreatedAt TimeStamp  `json:"createdAt"`
+	Destroyed *Destroyed `json:"-,omitempty"`
+	Assignee  struct {
+		UserID    string `json:"userId"`
+		UserName  string `json:"userName"`
+		AvatarURL string `json:"avatarUrl"`
+		Role      string `json:"role"`
+		Email     string `json:"email"`
+	} `json:"assignee"`
+	Tags      []string `json:"tags"`
+	GroupID   string   `json:"groupId"`
+	Submitter struct {
+		UserID    string `json:"userId"`
+		UserName  string `json:"userName"`
+		AvatarURL string `json:"avatarUrl"`
+		Role      string `json:"role"`
+		Ranking   struct {
+			Rank       int `json:"rank"`
+			Reputation int `json:"reputation"`
+			Streak     struct {
+				ID    int    `json:"id"`
+				Value string `json:"value"`
+			} `json:"streak"`
 		} `json:"ranking"`
-		IdentityChecked bool   `json:"identityChecked"`
-		UserID          string `json:"userId"`
-		UserName        string `json:"userName"`
-		AvatarURL       string `json:"avatarUrl"`
-		Role            string `json:"role"`
+		IdentityChecked bool `json:"identityChecked"`
 	} `json:"submitter"`
-	CollaboratorCount int `json:"collaboratorCount"`
-	WebLinks          struct {
+	LastUpdated struct {
+		LastUpdater struct {
+			UserID    string `json:"userId"`
+			UserName  string `json:"userName"`
+			AvatarURL string `json:"avatarUrl"`
+			Role      string `json:"role"`
+		} `json:"lastUpdater"`
+		LastUpdatedAt int `json:"lastUpdatedAt"`
+	} `json:"lastUpdated"`
+	AttachmentCount int `json:"attachmentCount"`
+	WebLinks        struct {
 		Details string `json:"details"`
 	} `json:"webLinks"`
+	IntegrationCount int `json:"integrationCount"`
+}
+
+type Destroyed struct {
+	DestroyedBy *DestroyedBy `json:"destroyedBy,omitempty"`
+	DestroyedAt TimeStamp    `json:"destroyedAt,omitempty"`
+}
+
+type DestroyedBy struct {
+	UserID    string `json:"userId"`
+	UserName  string `json:"userName"`
+	AvatarURL string `json:"avatarUrl"`
+	Role      string `json:"role"`
+	Email     string `json:"email"`
+}
+
+type TimeStamp struct {
+	time.Time
+}
+
+func (s *TimeStamp) UnmarshalJSON(bytes []byte) error {
+	var raw int64
+	err := json.Unmarshal(bytes, &raw)
+	if err != nil {
+		fmt.Printf("error decoding timestamp: %s\n", err)
+		return err
+	}
+	s.Time = time.Unix(raw, 0)
+	return nil
 }
 
 func (s *Submission) IsClosed() bool {

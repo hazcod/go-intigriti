@@ -7,6 +7,7 @@ import (
 	"golang.org/x/oauth2"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -15,33 +16,23 @@ const (
 	stateLengthLetters = 10
 
 	localCallbackURL = "http://localhost:8999/"
-
-	apiTokenURL = "https://login.intigriti.com/connect/token"
-	apiAuthzURL = "https://login.intigriti.com/connect/authorize"
-	apiEndpoint = "https://api.intigriti.com/external"
 )
 
 var (
-	tokenURL = os.Getenv("INTI_TOKEN_URL")
-	authzURL = os.Getenv("INTI_AUTH_URL")
-	apiURL   = os.Getenv("INTI_API_URL")
+	tokenURL = "https://login.intigriti.com/connect/token"
+	authzURL = "https://login.intigriti.com/connect/authorize"
+	apiURL   = "https://api.intigriti.com/external"
 )
 
 func (e *Endpoint) getOauth2Config() oauth2.Config {
-	if tokenURL == "" {
-		tokenURL = apiTokenURL
-	}
-
-	if authzURL == "" {
-		authzURL = apiAuthzURL
-	}
-
-	if apiURL == "" {
-		apiURL = apiEndpoint
+	if os.Getenv("INT_TEST") != "" {
+		tokenURL = strings.Replace(tokenURL, "login.", "login-uat.", 1)
+		authzURL = strings.Replace(authzURL, "login.", "login-uat.", 1)
+		apiURL = strings.Replace(apiURL, "api.", "api-uat.", 1)
 	}
 
 	e.Logger.WithField("api_url", apiURL).Debug("set api url")
-
+	e.URLAPI = apiURL
 	return oauth2.Config{
 		ClientID:     e.clientID,
 		ClientSecret: e.clientSecret,
@@ -50,7 +41,7 @@ func (e *Endpoint) getOauth2Config() oauth2.Config {
 			AuthURL:  authzURL,
 		},
 		RedirectURL: localCallbackURL,
-		Scopes:      []string{"external_api", "offline_access"},
+		Scopes:      []string{"company_external_api", "offline_access", "core_platform:read"},
 	}
 }
 

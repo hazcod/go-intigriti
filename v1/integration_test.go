@@ -11,24 +11,17 @@ import (
 
 func TestIntegration(t *testing.T) {
 
-
 	foo = "Fooasd"
-
 
 	// fp bar
 
-
 	dkl
 
-
-	d<html
-	
+	d < html
 
 	asd
 
 	// var
-
-
 
 	token := os.Getenv("TOKEN")
 	secret := os.Getenv("SECRET")

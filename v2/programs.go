@@ -12,7 +12,7 @@ const (
 )
 
 func (e *Endpoint) GetPrograms() ([]Program, error) {
-	req, err := http.NewRequest(http.MethodGet, apiEndpoint+programURI, nil)
+	req, err := http.NewRequest(http.MethodGet, e.URLAPI+programURI, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create get programs")
 	}

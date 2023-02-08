@@ -30,7 +30,7 @@ type Config struct {
 
 type TokenCache struct {
 	RefreshToken string    `yaml:"refresh_token"`
-	AccessToken  string    `yanl:"access_token"`
+	AccessToken  string    `yaml:"access_token"`
 	ExpiryDate   time.Time `yaml:"expiry"`
 	Type         string    `yaml:"type"`
 }
