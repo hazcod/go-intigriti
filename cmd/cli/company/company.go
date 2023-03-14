@@ -2,10 +2,11 @@ package company
 
 import (
 	"flag"
-	"github.com/hazcod/go-intigriti/pkg/config"
-	v2 "github.com/hazcod/go-intigriti/v2"
-	"github.com/sirupsen/logrus"
 	"strings"
+
+	"github.com/finn-no/go-intigriti/pkg/config"
+	v2 "github.com/finn-no/go-intigriti/v2"
+	"github.com/sirupsen/logrus"
 )
 
 func Command(l *logrus.Logger, cfg *config.Config, inti v2.Endpoint) {

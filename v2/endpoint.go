@@ -1,11 +1,12 @@
 package v2
 
 import (
-	"github.com/hazcod/go-intigriti/pkg/config"
+	"net/http"
+
+	"github.com/finn-no/go-intigriti/pkg/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"net/http"
 )
 
 const (

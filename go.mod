@@ -1,4 +1,4 @@
-module github.com/hazcod/go-intigriti
+module github.com/finn-no/go-intigriti
 
 go 1.14
 

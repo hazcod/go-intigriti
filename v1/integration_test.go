@@ -28,8 +28,6 @@ func TestIntegration(t *testing.T) {
 	apiAuth := os.Getenv("AUTH_API")
 	apiSub := os.Getenv("SUB_API")
 
-	api
-
 	if token == "" || secret == "" || apiAuth == "" || apiSub == "" {
 		t.Fatal("missing one or more env vars: TOKEN, SECRET, AUTH_API, SUB_API")
 	}

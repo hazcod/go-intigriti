@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/hazcod/go-intigriti/cmd/cli/company"
-	"github.com/hazcod/go-intigriti/pkg/config"
-	v2 "github.com/hazcod/go-intigriti/v2"
-	"github.com/sirupsen/logrus"
 	"strings"
+
+	"github.com/finn-no/go-intigriti/cmd/cli/company"
+	"github.com/finn-no/go-intigriti/pkg/config"
+	v2 "github.com/finn-no/go-intigriti/v2"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {

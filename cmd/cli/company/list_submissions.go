@@ -2,9 +2,10 @@ package company
 
 import (
 	"flag"
-	v2 "github.com/hazcod/go-intigriti/v2"
-	"github.com/sirupsen/logrus"
 	"strings"
+
+	v2 "github.com/finn-no/go-intigriti/v2"
+	"github.com/sirupsen/logrus"
 )
 
 func ListSubmissions(l *logrus.Logger, inti v2.Endpoint) {
@@ -30,17 +31,20 @@ func ListSubmissions(l *logrus.Logger, inti v2.Endpoint) {
 		programIDs = []string{programID}
 	}
 
-	for _, programID := range programIDs {
-		submissions, err := inti.GetSubmissions(programID)
-		if err != nil {
-			l.WithError(err).WithField("program_id", submissions).Warn("could not list submissions")
-			continue
-		}
+	// for _, programID := range programIDs {
+	// submissions, err := inti.GetSubmissions(programID)
+	submissions, err := inti.GetSubmissions()
+	if err != nil {
+		l.WithError(err).WithField("program_id", submissions).Warn("could not list submissions")
+		return
+		// continue
+	}
 
-		for _, subm := range submissions {
-			l.Infof(
-				"- %s (state %s, severity %s, code %s)",
-				subm.Title, subm.State.Status.Value, subm.Severity.Value, subm.Code)
-		}
+	for _, subm := range submissions {
+		l.Infof(
+			"- %s (state %s, severity %s, code %s)",
+			subm.Title, subm.State.Status.Value, subm.Severity.Value, subm.Code)
 	}
 }
+
+// }

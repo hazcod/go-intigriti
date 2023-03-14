@@ -2,13 +2,14 @@ package v2
 
 import (
 	"context"
-	"github.com/hazcod/go-intigriti/pkg/config"
-	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/finn-no/go-intigriti/pkg/config"
+	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
 )
 
 const (

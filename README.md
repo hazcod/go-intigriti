@@ -1,7 +1,7 @@
 # go-intigriti
 
 Go library and commandline client for interacting with the [intigriti](https://www.intigriti.com/) v1 and v2 external API.
-Checkout the [docs](https://pkg.go.dev/github.com/hazcod/go-intigriti)!
+Checkout the [docs](https://pkg.go.dev/github.com/finn-no/go-intigriti)!
 
 ## Commandline client
 
@@ -23,7 +23,7 @@ Check with your customer success representative what version you ought to use.
 package main
 
 import (
-	inti "github.com/hazcod/go-intigriti/v2"
+	inti "github.com/finn-no/go-intigriti/v2"
 	"log"
 )
 
