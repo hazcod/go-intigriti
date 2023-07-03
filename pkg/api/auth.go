@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/intigriti/sdk-go/pkg/config"
+	"github.com/hazcod/go-intigriti/pkg/config"
 	"net/http"
 	"os"
 	"time"

@@ -41,11 +41,6 @@ jobs:
       run: |
         rm dependency-results.sbom.json
     -
-      name: Setup git for private go module access
-      run: |
-        go env -w GOPRIVATE=github.com/intigriti
-        echo "machine github.com login ${{ secrets.GH_PRIVATEREPO_TOKEN }}" >> ~/.netrc
-    -
       name: Install syft
       run: |
         curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin

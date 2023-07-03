@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	clientTag = "intigriti/sdk-go"
+	clientTag = "hazcod/go-intigriti"
 )
 
 type TaggedRoundTripper struct {

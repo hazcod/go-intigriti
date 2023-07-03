@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/intigriti/sdk-go/cmd/cli/company"
-	"github.com/intigriti/sdk-go/cmd/cli/ui"
-	"github.com/intigriti/sdk-go/cmd/config"
-	intigriti "github.com/intigriti/sdk-go/pkg/api"
-	apiConfig "github.com/intigriti/sdk-go/pkg/config"
+	"github.com/hazcod/go-intigriti/cmd/cli/company"
+	"github.com/hazcod/go-intigriti/cmd/cli/ui"
+	"github.com/hazcod/go-intigriti/cmd/config"
+	intigriti "github.com/hazcod/go-intigriti/pkg/api"
+	apiConfig "github.com/hazcod/go-intigriti/pkg/config"
 	"github.com/sirupsen/logrus"
 	"strings"
 )

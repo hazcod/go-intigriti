@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/intigriti/sdk-go/pkg/config"
+	"github.com/hazcod/go-intigriti/pkg/config"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"

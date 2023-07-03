@@ -1,7 +1,7 @@
 package company
 
 import (
-	intigriti "github.com/intigriti/sdk-go/pkg/api"
+	intigriti "github.com/hazcod/go-intigriti/pkg/api"
 	"github.com/sirupsen/logrus"
 )
 
