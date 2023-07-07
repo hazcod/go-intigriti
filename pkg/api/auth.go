@@ -104,6 +104,10 @@ func (e *Endpoint) getClient(tc *config.CachedToken, auth *config.InteractiveAut
 
 	e.oauthToken = &oauth2.Token{}
 
+	if tc == nil {
+		tc = &config.CachedToken{}
+	}
+
 	// if our configuration contains a cached token, re-use it
 	if tc.RefreshToken != "" {
 		e.logger.Debug("trying to use cached token")
