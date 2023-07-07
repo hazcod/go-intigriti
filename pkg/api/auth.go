@@ -30,7 +30,7 @@ const (
 	defaultApiAuthzURL = "https://login.intigriti.com/connect/authorize"
 	defaultApiEndpoint = "https://api.intigriti.com/external"
 
-	scopeExternalAPI   = "external_api"
+	scopeExternalAPI   = "company_external_api"
 	scopeOfflineAccess = "offline_access"
 )
 
