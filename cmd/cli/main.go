@@ -15,16 +15,18 @@ func main() {
 	logger := logrus.New()
 
 	configPath := flag.String("config", "inti.yml", "Path to your config file.")
-	logLevelStr := flag.String("log", "info", "Log level.")
+	logLevelStr := flag.String("log", "", "Log level.")
 	flag.Parse()
 
-	logLevel, err := logrus.ParseLevel(*logLevelStr)
-	if err != nil {
-		logger.WithError(err).Fatal("could not parse log level")
-	}
+	if *logLevelStr != "" {
+		logLevel, err := logrus.ParseLevel(*logLevelStr)
+		if err != nil {
+			logger.WithError(err).Fatal("could not parse log level")
+		}
 
-	logger.SetLevel(logLevel)
-	logger.WithField("level", logLevel.String()).Debugf("log level set")
+		logger.SetLevel(logLevel)
+		logger.WithField("level", logLevel.String()).Debugf("log level set")
+	}
 
 	cfg, err := config.Load(logger, *configPath)
 	if err != nil {
@@ -33,6 +35,16 @@ func main() {
 
 	if err := cfg.Validate(); err != nil {
 		logger.WithError(err).Fatal("invalid configuration")
+	}
+
+	if cfg.Log.Level != "" && *logLevelStr == "" {
+		logLevel, err := logrus.ParseLevel(cfg.Log.Level)
+		if err != nil {
+			logger.WithError(err).Fatal("could not parse log level")
+		}
+
+		logger.SetLevel(logLevel)
+		logger.WithField("level", logLevel.String()).Debugf("log level set")
 	}
 
 	browser := ui.SystemBrowser{}

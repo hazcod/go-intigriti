@@ -6,6 +6,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"net/http"
+	"strings"
+)
+
+const (
+	apiAllScopes = "offline_access company_external_api core_platform:read core_platform:write"
 )
 
 type Endpoint struct {
@@ -17,6 +22,8 @@ type Endpoint struct {
 
 	client     *http.Client
 	oauthToken *oauth2.Token
+
+	apiScopes []string
 }
 
 // New creates an Intigriti endpoint object to use
@@ -26,6 +33,11 @@ func New(cfg config.Config) (Endpoint, error) {
 		clientID:     cfg.Credentials.ClientID,
 		clientSecret: cfg.Credentials.ClientSecret,
 		clientTag:    clientTag,
+		apiScopes:    cfg.APIScopes,
+	}
+
+	if len(e.apiScopes) == 0 {
+		e.apiScopes = strings.Split(apiAllScopes, " ")
 	}
 
 	// initialize the logger to use

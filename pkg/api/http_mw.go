@@ -18,17 +18,20 @@ type TaggedRoundTripper struct {
 // RoundTrip injects a http request header on every request and logs request/response
 func (t TaggedRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("user-agent", clientTag)
-	resp, err := t.Proxied.RoundTrip(req)
 
-	if t.Logger != nil && t.Logger.IsLevelEnabled(logrus.TraceLevel) {
+	if t.Logger != nil && t.Logger.IsLevelEnabled(logrus.TraceLevel) && req != nil {
 		dumped, err := httputil.DumpRequest(req, true)
 		if err != nil {
 			t.Logger.WithError(err).Error("could not dump http request")
 		} else {
 			t.Logger.Trace(string(dumped))
 		}
+	}
 
-		dumped, err = httputil.DumpResponse(req.Response, true)
+	resp, err := t.Proxied.RoundTrip(req)
+
+	if t.Logger != nil && t.Logger.IsLevelEnabled(logrus.TraceLevel) && resp != nil {
+		dumped, err := httputil.DumpResponse(resp, true)
 		if err != nil {
 			t.Logger.WithError(err).Error("could not dump http response")
 		} else {

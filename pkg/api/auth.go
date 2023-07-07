@@ -29,9 +29,6 @@ const (
 	defaultApiTokenURL = "https://login.intigriti.com/connect/token"
 	defaultApiAuthzURL = "https://login.intigriti.com/connect/authorize"
 	defaultApiEndpoint = "https://api.intigriti.com/external"
-
-	scopeExternalAPI   = "company_external_api"
-	scopeOfflineAccess = "offline_access"
 )
 
 var (
@@ -57,10 +54,10 @@ func init() {
 }
 
 // retrieve the oauth2 configuration to use
-func (e *Endpoint) getOauth2Config() oauth2.Config {
+func (e *Endpoint) getOauth2Config(apiScopes []string) oauth2.Config {
 	e.logger.WithField("api_url", apiURL).Debug("set api url")
 
-	return oauth2.Config{
+	oauthConfig := oauth2.Config{
 		ClientID:     e.clientID,
 		ClientSecret: e.clientSecret,
 		Endpoint: oauth2.Endpoint{
@@ -68,8 +65,12 @@ func (e *Endpoint) getOauth2Config() oauth2.Config {
 			AuthURL:  authzURL,
 		},
 		RedirectURL: fmt.Sprintf("http://%s:%d%s", localCallbackHost, localCallbackPort, localCallbackURI),
-		Scopes:      []string{scopeExternalAPI, scopeOfflineAccess},
+		Scopes:      apiScopes,
 	}
+
+	e.logger.Tracef("%+v", oauthConfig)
+
+	return oauthConfig
 }
 
 // fetch the latest (valid) oauth2 access and refresh token
@@ -80,7 +81,7 @@ func (e *Endpoint) getToken() (*oauth2.Token, error) {
 	}
 
 	// get out oauth2 config to use
-	conf := e.getOauth2Config()
+	conf := e.getOauth2Config(e.apiScopes)
 
 	// get valid refresh and access tokens
 	tokenSrc := conf.TokenSource(context.Background(), e.oauthToken)
@@ -96,7 +97,7 @@ func (e *Endpoint) getToken() (*oauth2.Token, error) {
 func (e *Endpoint) getClient(tc *config.CachedToken, auth *config.InteractiveAuthenticator) (*http.Client, error) {
 	ctx := context.Background()
 
-	conf := e.getOauth2Config()
+	conf := e.getOauth2Config(e.apiScopes)
 
 	httpClient := &http.Client{Timeout: httpTimeoutSec * time.Second}
 
@@ -126,7 +127,7 @@ func (e *Endpoint) getClient(tc *config.CachedToken, auth *config.InteractiveAut
 			return nil, errors.Wrap(err, "failed to authenticate")
 		}
 
-		e.logger.Debug("exchanging code")
+		e.logger.WithField("code", authzCode).Debug("exchanging code")
 
 		e.oauthToken, err = conf.Exchange(ctx, authzCode)
 		if err != nil {
