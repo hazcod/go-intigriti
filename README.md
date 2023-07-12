@@ -23,7 +23,8 @@ Usage:
 
 ### Setup
 
-Ensure external API v2 support is enabled on your company account. Afterwards create the following configuration file:
+Ensure external API v2 support is enabled on your company account with a redirectUri of `http://localhost:1337/`.
+Afterwards create the following configuration file:
 
 ```yaml
 log.level: info
