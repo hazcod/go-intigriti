@@ -73,8 +73,8 @@ func (e *Endpoint) getOauth2Config(apiScopes []string) oauth2.Config {
 	return oauthConfig
 }
 
-// fetch the latest (valid) oauth2 access and refresh token
-func (e *Endpoint) getToken() (*oauth2.Token, error) {
+// GetToken fetch the latest (valid) oauth2 access and refresh token
+func (e *Endpoint) GetToken() (*oauth2.Token, error) {
 	// don't do anything when the token is ok
 	if e.oauthToken != nil && e.oauthToken.Valid() {
 		return e.oauthToken, nil
