@@ -61,7 +61,7 @@ func New(cfg config.Config) (Endpoint, error) {
 	e.client = httpClient
 
 	// ensure our current token is fetched or renewed if expired
-	if _, err = e.getToken(); err != nil {
+	if _, err = e.GetToken(); err != nil {
 		return e, errors.Wrap(err, "could not prepare token")
 	}
 
