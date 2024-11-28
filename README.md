@@ -41,37 +41,104 @@ Future calls will not need to since your token will be cached in your configurat
 API Swagger documentation is available on the [ReadMe](https://intigriti.readme.io/reference/introduction).
 
 ### Usage
+
 ```go
 package main
 
 import (
+	"flag"
+	"github.com/hazcod/go-intigriti/cmd/cli/company"
+	"github.com/hazcod/go-intigriti/cmd/config"
 	intigriti "github.com/hazcod/go-intigriti/pkg/api"
-	"github.com/hazcod/go-intigriti/pkg/config"
-	"log"
+	apiConfig "github.com/hazcod/go-intigriti/pkg/config"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 func main() {
-	// this will require manual logon every time your code runs
-	// look into persisting the TokenCache so refresh tokens can be saved
-	// this will also launch an interactive Browser window to authenticate,
-	// look at config.OpenBrowser and config.TokenCache to prevent this
-	// or how the cli does it at https://github.com/hazcod/go-intigriti/blob/2eeb6a9fcee42fc4ac1ada7f5dc6d2db5446c15d/cmd/config/config.go#L86
-	inti, err := intigriti.New(config.Config{
+	logger := logrus.New()
+
+	configPath := flag.String("config", "inti.yml", "Path to your config file.")
+	logLevelStr := flag.String("log", "", "Log level.")
+	flag.Parse()
+
+	if *logLevelStr != "" {
+		logLevel, err := logrus.ParseLevel(*logLevelStr)
+		if err != nil {
+			logger.WithError(err).Fatal("could not parse log level")
+		}
+
+		logger.SetLevel(logLevel)
+		logger.WithField("level", logLevel.String()).Debugf("log level set")
+	}
+
+	cfg, err := config.Load(logger, *configPath)
+	if err != nil {
+		logger.Fatalf("could not load configuration: %s", err)
+	}
+
+	if err := cfg.Validate(); err != nil {
+		logger.WithError(err).Fatal("invalid configuration")
+	}
+
+	if cfg.Log.Level != "" && *logLevelStr == "" {
+		logLevel, err := logrus.ParseLevel(cfg.Log.Level)
+		if err != nil {
+			logger.WithError(err).Fatal("could not parse log level")
+		}
+
+		logger.SetLevel(logLevel)
+		logger.WithField("level", logLevel.String()).Debugf("log level set")
+	}
+
+	//browser := ui.SystemBrowser{}
+	apiScopes := []string{"company_external_api", "core_platform:read"}
+
+	inti, err := intigriti.New(apiConfig.Config{
+		// our Intigriti API credentials
 		Credentials: struct {
 			ClientID     string
 			ClientSecret string
-		}{
-		    ClientID: "my-integration-client-id",
-		    ClientSecret: "my-integration-client-secret",
+		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
+		APIScopes: apiScopes,
+
+		// cache tokens as much as possible to reduce times we have to authenticate
+		TokenCache: &apiConfig.CachedToken{
+			RefreshToken: cfg.Cache.RefreshToken,
+			AccessToken:  cfg.Cache.AccessToken,
+			ExpiryDate:   cfg.Cache.ExpiryDate,
+			Type:         cfg.Cache.Type,
 		},
+
+		// use our logger and our logging levels
+		Logger: logger,
 	})
-	if err != nil { log.Fatal(err) }
-	
+	if err != nil {
+		logger.WithError(err).Fatal("could not initialize client")
+	}
+
+	token, err := inti.GetToken()
+	if err != nil {
+		logger.Fatalf("failed to cache token: %v", err)
+	}
+
+	if err := cfg.CacheAuth(logger, *configPath, token); err != nil {
+		logger.Fatalf("failed to cache token: %v", err)
+	}
+
+	logger.WithField("authenticated", inti.IsAuthenticated()).Debug("initialized client")
+
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	programs, err := inti.GetPrograms()
-	if err != nil { log.Fatal(err) }
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	for _, program := range programs {
-		log.Println(program.Name)
+		logger.Println(program.Name)
 	}
 }
 ```

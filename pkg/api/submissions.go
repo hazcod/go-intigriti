@@ -10,12 +10,13 @@ import (
 )
 
 const (
-	submissionUri = "/company/v2/programs/%s/submissions"
+	programSubmissionUri = "/company/v2/programs/%s/submissions"
+	submissionUri        = "/company/v2/submissions"
 )
 
-// GetSubmissions returns all submissions for the given program identifier
-func (e *Endpoint) GetSubmissions(programId string) ([]Submission, error) {
-	req, err := http.NewRequest(http.MethodGet, apiURL+fmt.Sprintf(submissionUri, programId), nil)
+// GetProgramSubmissions returns all submissions for the given program identifier
+func (e *Endpoint) GetProgramSubmissions(programId string) ([]Submission, error) {
+	req, err := http.NewRequest(http.MethodGet, apiURL+fmt.Sprintf(programSubmissionUri, programId), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create get programs")
 	}
@@ -40,6 +41,38 @@ func (e *Endpoint) GetSubmissions(programId string) ([]Submission, error) {
 
 	if err := json.Unmarshal(b, &submissions); err != nil {
 		return nil, errors.Wrap(err, "could not decode programs")
+	}
+
+	return submissions, nil
+}
+
+// GetAllSubmissions returns all submissions for all programs
+func (e *Endpoint) GetAllSubmissions() ([]Submission, error) {
+	req, err := http.NewRequest(http.MethodGet, apiURL+submissionUri, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not create get submissions request")
+	}
+
+	resp, err := e.client.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get submissions")
+	}
+
+	if resp.StatusCode > 399 {
+		return nil, errors.Errorf("returned status %d", resp.StatusCode)
+	}
+
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not read response")
+	}
+
+	var submissions []Submission
+
+	if err := json.Unmarshal(b, &submissions); err != nil {
+		return nil, errors.Wrap(err, "could not decode submissions")
 	}
 
 	return submissions, nil
