@@ -46,7 +46,6 @@ func main() {
 		logger.WithField("level", logLevel.String()).Debugf("log level set")
 	}
 
-	//browser := ui.SystemBrowser{}
 	apiScopes := []string{"company_external_api", "core_platform:read"}
 
 	inti, err := intigriti.New(apiConfig.Config{

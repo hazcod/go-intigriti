@@ -160,10 +160,10 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 		}
 
 		resp, err := client.Do(req)
+		defer resp.Body.Close()
 		if err != nil {
 			e.logger.WithError(err).Warn("access token validation failed, proceeding to interactive authentication")
 		} else {
-			defer resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {
 				e.logger.Debug("access token is valid")
 				return accessToken, nil
