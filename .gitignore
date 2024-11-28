@@ -8,3 +8,4 @@ vendor/
 .semrel/
 .generated-go-semantic-release-changelog.md
 .dccache
+.cache/
