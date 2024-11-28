@@ -3,18 +3,18 @@ package main
 import (
 	"flag"
 	"github.com/hazcod/go-intigriti/cmd/cli/company"
-	"github.com/hazcod/go-intigriti/cmd/cli/ui"
 	"github.com/hazcod/go-intigriti/cmd/config"
 	intigriti "github.com/hazcod/go-intigriti/pkg/api"
 	apiConfig "github.com/hazcod/go-intigriti/pkg/config"
 	"github.com/sirupsen/logrus"
+	"log"
 	"strings"
 )
 
 func main() {
 	logger := logrus.New()
 
-	configPath := flag.String("config", "inti.yml", "Path to your config file.")
+	configPath := flag.String("config", "dev.yml", "Path to your config file.")
 	logLevelStr := flag.String("log", "", "Log level.")
 	flag.Parse()
 
@@ -47,7 +47,8 @@ func main() {
 		logger.WithField("level", logLevel.String()).Debugf("log level set")
 	}
 
-	browser := ui.SystemBrowser{}
+	//browser := ui.SystemBrowser{}
+	apiScopes := []string{"company_external_api", "core_platform:read"}
 
 	inti, err := intigriti.New(apiConfig.Config{
 		// our Intigriti API credentials
@@ -55,10 +56,11 @@ func main() {
 			ClientID     string
 			ClientSecret string
 		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
+		APIScopes: apiScopes,
 
 		// pop up a browser when necessary to authenticate
-		OpenBrowser:   true,
-		Authenticator: browser,
+		//OpenBrowser: false,
+		//Authenticator: browser,
 
 		// cache tokens as much as possible to reduce times we have to authenticate
 		TokenCache: &apiConfig.CachedToken{
@@ -73,6 +75,17 @@ func main() {
 	})
 	if err != nil {
 		logger.WithError(err).Fatal("could not initialize client")
+	}
+
+	configPath := "dev.yml"
+	token, err := inti.GetToken()
+	if err != nil {
+		logger.Fatalf("failed to cache token: %v", err)
+	}
+	log.Printf("Cached token: %s\n", token)
+	// Cache the token
+	if err := conf.CacheAuth(logger, configPath, token); err != nil {
+		logger.Fatalf("failed to cache token: %v", err)
 	}
 
 	logger.WithField("authenticated", inti.IsAuthenticated()).Debug("initialized client")

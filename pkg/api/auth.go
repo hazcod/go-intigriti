@@ -14,7 +14,7 @@ import (
 
 const (
 	// timeout of every http request
-	httpTimeoutSec = 5
+	httpTimeoutSec = 15
 	// the length of our Oauth2 state parameter
 	stateLengthLetters = 10
 	// timeout of the local callback listener
@@ -100,7 +100,6 @@ func (e *Endpoint) getClient(tc *config.CachedToken, auth *config.InteractiveAut
 	conf := e.getOauth2Config(e.apiScopes)
 
 	httpClient := &http.Client{Timeout: httpTimeoutSec * time.Second}
-
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
 
 	e.oauthToken = &oauth2.Token{}
@@ -109,60 +108,94 @@ func (e *Endpoint) getClient(tc *config.CachedToken, auth *config.InteractiveAut
 		tc = &config.CachedToken{}
 	}
 
-	// if our configuration contains a cached token, re-use it
-	if tc.RefreshToken != "" {
-		e.logger.Debug("trying to use cached token")
-		e.oauthToken.AccessToken = tc.AccessToken
-		e.oauthToken.RefreshToken = tc.RefreshToken
-		e.oauthToken.Expiry = tc.ExpiryDate
-		e.oauthToken.TokenType = tc.Type
+	if tc.AccessToken != "" {
+		e.logger.Debug("using cached access token")
+		e.oauthToken = &oauth2.Token{
+			AccessToken:  tc.AccessToken,
+			RefreshToken: tc.RefreshToken,
+			Expiry:       tc.ExpiryDate,
+			TokenType:    tc.Type,
+		}
 	}
 
-	// if the current token is invalid, fetch a new one
-	if !e.oauthToken.Valid() {
-		e.logger.Debug("authenticating for new token")
+	if e.oauthToken.Valid() {
+		e.logger.Debug("cached access token is valid, skipping authentication")
+	} else {
+		e.logger.Debug("access token is invalid or expired, authenticating for new token")
 
-		authzCode, err := e.authenticate(ctx, &conf, auth)
+		authzCode, err := e.authenticate(ctx, &conf, auth, e.oauthToken.AccessToken)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to authenticate")
 		}
 
-		e.logger.WithField("code", authzCode).Debug("exchanging code")
-
-		e.oauthToken, err = conf.Exchange(ctx, authzCode)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not exchange code")
+		if authzCode != "" {
+			e.logger.WithField("code", authzCode).Debug("exchanging code")
+			e.oauthToken, err = conf.Exchange(ctx, authzCode)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not exchange code")
+			}
 		}
 	}
 
-	// ensure our http client uses our oauth2 credentials
+	// Ensure our HTTP client uses the OAuth2 credentials
 	authHttpClient := conf.Client(ctx, e.oauthToken)
 
-	// inject a logging middleware into our http client
+	// Inject a logging middleware into the HTTP client
 	authHttpClient.Transport = TaggedRoundTripper{Proxied: authHttpClient.Transport, Logger: e.logger}
 	e.logger.Debug("successfully created client")
 
 	return authHttpClient, nil
 }
 
-// authenticate versus the Intigriti API, this requires user interaction
-func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config, auth *config.InteractiveAuthenticator) (string, error) {
-	state := randomString(stateLengthLetters)
+// authenticate authenticates with the Intigriti API using either an access token or interactive OAuth.
+func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config, auth *config.InteractiveAuthenticator, accessToken string) (string, error) {
+	// If an access token is provided, validate it
+	if accessToken != "" {
+		e.logger.Info("validating provided access token")
 
+		// Check token validity by calling an endpoint (e.g., user info or token introspection)
+		client := oauth2Config.Client(ctx, &oauth2.Token{AccessToken: accessToken})
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.intigriti.com/v1/userinfo", nil) // Example endpoint
+		if err != nil {
+			e.logger.WithError(err).Error("failed to create validation request")
+			return "", err
+		}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			e.logger.WithError(err).Warn("access token validation failed, proceeding to interactive authentication")
+		} else {
+			defer resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				e.logger.Debug("access token is valid")
+				return accessToken, nil
+			} else {
+				e.logger.WithField("status", resp.StatusCode).Warn("access token invalid, proceeding to interactive authentication")
+			}
+		}
+	}
+
+	// No valid access token provided, start interactive authentication flow
+	e.logger.Info("starting interactive authentication flow")
+	state := randomString(stateLengthLetters)
 	resultChan := make(chan callbackResult, 1)
 
+	// Set a timeout for the interactive authentication flow
 	ctx, cancel := context.WithTimeout(ctx, time.Second*callbackTimeoutSec)
-
-	go e.listenForCallback(localCallbackURI, localCallbackHost, localCallbackPort, state, resultChan)
 	defer func() { go func() { cancel(); resultChan <- callbackResult{} }() }()
 
-	// Redirect user to consent page to ask for permission 	for the scopes specified above.
+	// Start a listener to handle the callback
+	go e.listenForCallback(localCallbackURI, localCallbackHost, localCallbackPort, state, resultChan)
+
+	// Generate the authentication URL
 	url := oauth2Config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+
+	// Log the URL only if no valid access token was provided
 	e.logger.Warnf("Please authenticate: %s", url)
 
+	// Attempt to open the system browser for authentication
 	if auth != nil {
 		e.logger.Info("opening system browser to authenticate")
-
 		authenticator := *auth
 		if err := authenticator.OpenURL(url); err != nil {
 			e.logger.WithField("url", url).WithError(err).Warnf("could not open browser")
@@ -171,13 +204,12 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 
 	e.logger.Debug("waiting for callback click")
 
+	// Wait for the callback or timeout
 	var chanResult callbackResult
 	select {
 	case <-ctx.Done():
 		resultChan <- callbackResult{Error: errors.New("timeout")}
-		break
 	case chanResult = <-resultChan:
-		break
 	}
 
 	e.logger.WithField("result", chanResult).Debug("received callback result")
