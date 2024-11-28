@@ -1,6 +1,6 @@
 module github.com/hazcod/go-intigriti
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
