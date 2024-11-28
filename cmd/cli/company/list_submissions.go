@@ -118,12 +118,11 @@ func ListSubmissions(l *logrus.Logger, inti intigriti.Endpoint) {
 	l.WithField("programs", len(programIDs)).Debug("retrieving submissions")
 
 	for _, programID := range programIDs {
-		pSubmissions, err := inti.GetSubmissions(programID)
+		pSubmissions, err := inti.GetProgramSubmissions(programID)
 		if err != nil {
 			l.WithError(err).WithField("program_id", pSubmissions).Error("could not list submissions")
 			continue
 		}
-
 		submissions = append(submissions, pSubmissions...)
 	}
 

@@ -7,7 +7,6 @@ import (
 	intigriti "github.com/hazcod/go-intigriti/pkg/api"
 	apiConfig "github.com/hazcod/go-intigriti/pkg/config"
 	"github.com/sirupsen/logrus"
-	"log"
 	"strings"
 )
 
@@ -58,10 +57,6 @@ func main() {
 		}{ClientID: cfg.Auth.ClientID, ClientSecret: cfg.Auth.ClientSecret},
 		APIScopes: apiScopes,
 
-		// pop up a browser when necessary to authenticate
-		//OpenBrowser: false,
-		//Authenticator: browser,
-
 		// cache tokens as much as possible to reduce times we have to authenticate
 		TokenCache: &apiConfig.CachedToken{
 			RefreshToken: cfg.Cache.RefreshToken,
@@ -77,14 +72,12 @@ func main() {
 		logger.WithError(err).Fatal("could not initialize client")
 	}
 
-	configPath := "dev.yml"
 	token, err := inti.GetToken()
 	if err != nil {
 		logger.Fatalf("failed to cache token: %v", err)
 	}
-	log.Printf("Cached token: %s\n", token)
-	// Cache the token
-	if err := conf.CacheAuth(logger, configPath, token); err != nil {
+
+	if err := cfg.CacheAuth(logger, *configPath, token); err != nil {
 		logger.Fatalf("failed to cache token: %v", err)
 	}
 

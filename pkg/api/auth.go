@@ -149,11 +149,9 @@ func (e *Endpoint) getClient(tc *config.CachedToken, auth *config.InteractiveAut
 
 // authenticate authenticates with the Intigriti API using either an access token or interactive OAuth.
 func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config, auth *config.InteractiveAuthenticator, accessToken string) (string, error) {
-	// If an access token is provided, validate it
 	if accessToken != "" {
 		e.logger.Info("validating provided access token")
 
-		// Check token validity by calling an endpoint (e.g., user info or token introspection)
 		client := oauth2Config.Client(ctx, &oauth2.Token{AccessToken: accessToken})
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.intigriti.com/v1/userinfo", nil) // Example endpoint
 		if err != nil {
@@ -180,11 +178,9 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 	state := randomString(stateLengthLetters)
 	resultChan := make(chan callbackResult, 1)
 
-	// Set a timeout for the interactive authentication flow
 	ctx, cancel := context.WithTimeout(ctx, time.Second*callbackTimeoutSec)
 	defer func() { go func() { cancel(); resultChan <- callbackResult{} }() }()
 
-	// Start a listener to handle the callback
 	go e.listenForCallback(localCallbackURI, localCallbackHost, localCallbackPort, state, resultChan)
 
 	// Generate the authentication URL
@@ -204,7 +200,6 @@ func (e *Endpoint) authenticate(ctx context.Context, oauth2Config *oauth2.Config
 
 	e.logger.Debug("waiting for callback click")
 
-	// Wait for the callback or timeout
 	var chanResult callbackResult
 	select {
 	case <-ctx.Done():
