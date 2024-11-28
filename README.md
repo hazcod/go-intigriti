@@ -34,7 +34,10 @@ auth:
 ```
 
 For the first call it will ask you to perform browser interaction to authenticate. <br/>
-Future calls will not need to since your token will be cached in your configuration file.
+Future calls will not need to since your token will be cached in your configuration file. <br/>
+
+If you selected 'non-expiring access tokens in the Intigriti administration panel, this code will only need interactive authentication once.<br/>
+Afterwards, it will re-use the access token in your YAML configuration file.
 
 ## Library 
 
