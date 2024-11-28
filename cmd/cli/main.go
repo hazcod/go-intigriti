@@ -13,7 +13,7 @@ import (
 func main() {
 	logger := logrus.New()
 
-	configPath := flag.String("config", "dev.yml", "Path to your config file.")
+	configPath := flag.String("config", "inti.yml", "Path to your config file.")
 	logLevelStr := flag.String("log", "", "Log level.")
 	flag.Parse()
 
